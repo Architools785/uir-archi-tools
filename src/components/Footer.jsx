@@ -1,113 +1,123 @@
-import { motion, useReducedMotion } from 'framer-motion'
+import { Link } from 'react-router-dom'
 
 const WA_LINK = 'https://wa.me/212752919680'
 const IG_LINK = 'https://www.instagram.com/uir.archi.tools'
 
-export default function Footer() {
-  const reduce = useReducedMotion()
+const LINK_GROUPS = [
+  {
+    title: 'Boutique',
+    links: [
+      { label: 'Shop', to: '/shop' },
+      { label: 'Nous contacter', to: '/contact' },
+      { label: 'À propos', to: '/a-propos' },
+    ],
+  },
+  {
+    title: 'Informations légales',
+    links: [
+      { label: "Conditions générales d'utilisation", to: '/cgu' },
+      { label: 'Politique de confidentialité', to: '/confidentialite' },
+    ],
+  },
+]
 
+function FooterLink({ to, children }) {
+  return (
+    <Link
+      to={to}
+      style={{
+        fontSize: '14px',
+        color: 'rgba(255,255,255,0.5)',
+        fontFamily: 'Rubik, sans-serif',
+        fontWeight: 500,
+        transition: 'color 0.2s',
+      }}
+      onMouseEnter={e => e.currentTarget.style.color = '#fff'}
+      onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.5)'}
+    >
+      {children}
+    </Link>
+  )
+}
+
+export default function Footer() {
   return (
     <footer style={{
       background: '#040514',
       borderTop: '1px solid rgba(255,255,255,0.07)',
       padding: '0 24px',
     }}>
-      {/* CTA banner */}
-      <motion.div
-        initial={reduce ? false : { opacity: 0, y: 30 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6 }}
-        style={{
-          maxWidth: '800px',
-          margin: '0 auto',
-          padding: '80px 0 72px',
-          textAlign: 'center',
-          borderBottom: '1px solid rgba(255,255,255,0.07)',
-        }}
-      >
-        <h2 style={{
-          fontFamily: 'Outfit, sans-serif',
-          fontWeight: 900,
-          fontSize: 'clamp(28px, 4vw, 52px)',
-          color: '#fff',
-          letterSpacing: '-1.5px',
-          lineHeight: 1.1,
-          marginBottom: '20px',
-        }}>
-          Prêt à commander ?
-          <br />
-          <span style={{ color: 'var(--accent)' }}>C&apos;est sur WhatsApp.</span>
-        </h2>
-        <p style={{
-          fontSize: '17px',
-          color: 'rgba(255,255,255,0.5)',
-          fontFamily: 'Rubik, sans-serif',
-          marginBottom: '36px',
-        }}>
-          Un message suffit. On s&apos;occupe du reste.
-        </p>
-        <a
-          href={WA_LINK}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '12px',
-            background: '#25D366',
-            color: '#fff',
-            fontFamily: 'Outfit, sans-serif',
-            fontWeight: 800,
-            fontSize: '18px',
-            padding: '18px 40px',
-            borderRadius: '100px',
-            boxShadow: '0 0 40px rgba(37,211,102,0.3)',
-            transition: 'transform 0.2s, box-shadow 0.2s',
-            cursor: 'pointer',
-          }}
-          onMouseEnter={e => {
-            e.currentTarget.style.transform = 'scale(1.05) translateY(-2px)'
-            e.currentTarget.style.boxShadow = '0 0 60px rgba(37,211,102,0.5)'
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.transform = 'scale(1) translateY(0)'
-            e.currentTarget.style.boxShadow = '0 0 40px rgba(37,211,102,0.3)'
-          }}
-        >
-          <WAIcon />
-          07 52 91 96 80
-        </a>
-      </motion.div>
+      {/* Link columns */}
+      <div style={{
+        maxWidth: '1100px',
+        margin: '0 auto',
+        padding: '64px 0 40px',
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+        gap: '40px',
+      }}>
+        <div>
+          <Link
+            to="/"
+            style={{
+              display: 'inline-block',
+              fontFamily: 'Outfit, sans-serif',
+              fontWeight: 800,
+              fontSize: '19px',
+              color: '#fff',
+              marginBottom: '10px',
+            }}
+          >
+            UIR <span style={{ color: 'var(--accent)' }}>Archi</span> Tools
+          </Link>
+          <div style={{
+            fontSize: '13px',
+            color: 'rgba(255,255,255,0.35)',
+            fontFamily: 'Rubik, sans-serif',
+            lineHeight: 1.6,
+            maxWidth: '260px',
+          }}>
+            Matériel d&apos;architecture livré directement sur le campus de l&apos;UIR. Commande en un message WhatsApp.
+          </div>
+        </div>
+
+        {LINK_GROUPS.map(group => (
+          <div key={group.title}>
+            <div style={{
+              fontFamily: 'Outfit, sans-serif', fontWeight: 700, fontSize: '12px',
+              letterSpacing: '1px', textTransform: 'uppercase',
+              color: 'rgba(255,255,255,0.4)', marginBottom: '16px',
+            }}>
+              {group.title}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {group.links.map(l => (
+                <FooterLink key={l.to} to={l.to}>{l.label}</FooterLink>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ maxWidth: '1100px', margin: '0 auto', height: '1px', background: 'rgba(255,255,255,0.06)' }} />
 
       {/* Bottom bar */}
       <div style={{
         maxWidth: '1100px',
         margin: '0 auto',
-        padding: '32px 0',
+        padding: '28px 0',
         display: 'flex',
         flexWrap: 'wrap',
         gap: '20px',
         alignItems: 'center',
         justifyContent: 'space-between',
       }}>
-        <div>
-          <div style={{
-            fontFamily: 'Outfit, sans-serif',
-            fontWeight: 800,
-            fontSize: '18px',
-            color: '#fff',
-            marginBottom: '4px',
-          }}>
-            UIR <span style={{ color: 'var(--accent)' }}>Archi</span> Tools
-          </div>
-          <div style={{
-            fontSize: '13px',
-            color: 'rgba(255,255,255,0.35)',
-            fontFamily: 'Rubik, sans-serif',
-          }}>
-            Matériel d&apos;architecture livré à l&apos;UIR
-          </div>
+        <div style={{
+          fontSize: '12px',
+          color: 'rgba(255,255,255,0.2)',
+          fontFamily: 'Rubik, sans-serif',
+        }}>
+          © {new Date().getFullYear()} UIR Archi Tools
         </div>
 
         <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
@@ -158,14 +168,6 @@ export default function Footer() {
             <WAIcon small />
             07 52 91 96 80
           </a>
-        </div>
-
-        <div style={{
-          fontSize: '12px',
-          color: 'rgba(255,255,255,0.2)',
-          fontFamily: 'Rubik, sans-serif',
-        }}>
-          © {new Date().getFullYear()} UIR Archi Tools
         </div>
       </div>
     </footer>
