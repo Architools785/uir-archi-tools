@@ -1,17 +1,18 @@
 import { useState, useRef } from 'react'
 import { motion, useReducedMotion, useMotionValue, useSpring, useTransform, useMotionTemplate, useInView } from 'framer-motion'
+import { Link } from 'react-router-dom'
 
-const PRODUCTS = [
-  { name: 'Carton plume 0.3', tag: 'Coupe précise',        gradient: 'linear-gradient(135deg,#1A1BA0,#2D2FC4)', icon: <LayersIcon />,   image: '/images/Carton Plume 0,3.jpeg' },
-  { name: 'Carton plume 0.5', tag: 'Structure solide',     gradient: 'linear-gradient(135deg,#2D2FC4,#6B21A8)', icon: <LayersIcon />,   image: '/images/Carton Plume 0,5.jpeg' },
-  { name: 'Papier A1',        tag: 'Grand format',         gradient: 'linear-gradient(135deg,#0E4D6E,#0D9488)', icon: <FileIcon />,     image: '/images/Papier A1.jpeg' },
-  { name: 'Canson A3',        tag: 'Qualité pro',          gradient: 'linear-gradient(135deg,#065F46,#059669)', icon: <ScrollIcon />,   image: '/images/Canson A3.jpeg' },
-  { name: 'Critérium Faber-Castell', tag: 'Trait fin & précis', gradient: 'linear-gradient(135deg,#92400E,#D97706)', icon: <PenIcon />, image: '/images/Criterium 0,5 Faber-Castel.jpeg' },
-  { name: 'Gomme électrique', tag: 'Effacement net',       gradient: 'linear-gradient(135deg,#7C2D8D,#EC4899)', icon: <ZapIcon />,      image: '/images/Gomme Electrique.jpeg' },
-  { name: 'Crayon gomme avec brosse', tag: 'Polyvalent',   gradient: 'linear-gradient(135deg,#78350F,#F59E0B)', icon: <PencilIcon />,  image: '/images/Crayon Blanc Brosse.jpeg' },
-  { name: 'Papier raisin',    tag: 'Texture premium',      gradient: 'linear-gradient(135deg,#134E4A,#0891B2)', icon: <FileIcon />,     image: '/images/Papier Canson Raisin.jpeg' },
-  { name: 'Colle UHU liquide',tag: 'Adhérence forte',      gradient: 'linear-gradient(135deg,#7F1D1D,#EF4444)', icon: <DropletsIcon />, image: '/images/Colle UHU Liquide.jpeg' },
-  { name: 'Mines',             tag: 'Recharges précises',   gradient: 'linear-gradient(135deg,#1F2937,#4B5563)', icon: <PencilIcon />,   image: '/images/Mines .jpeg' },
+export const PRODUCTS = [
+  { slug: 'carton-plume-03', name: 'Carton plume 0.3', price: 25, tag: 'Coupe précise',        gradient: 'linear-gradient(135deg,#1A1BA0,#2D2FC4)', icon: <LayersIcon />,   image: '/images/Carton Plume 0,3.jpeg' },
+  { slug: 'carton-plume-05', name: 'Carton plume 0.5', price: 35, tag: 'Structure solide',     gradient: 'linear-gradient(135deg,#2D2FC4,#6B21A8)', icon: <LayersIcon />,   image: '/images/Carton Plume 0,5.jpeg' },
+  { slug: 'papier-a1', name: 'Papier A1',        price: 15, tag: 'Grand format',         gradient: 'linear-gradient(135deg,#0E4D6E,#0D9488)', icon: <FileIcon />,     image: '/images/Papier A1.jpeg' },
+  { slug: 'canson-a3', name: 'Canson A3',        price: 12, tag: 'Qualité pro',          gradient: 'linear-gradient(135deg,#065F46,#059669)', icon: <ScrollIcon />,   image: '/images/Canson A3.jpeg' },
+  { slug: 'criterium-faber-castell', name: 'Critérium Faber-Castell', price: 30, tag: 'Trait fin & précis', gradient: 'linear-gradient(135deg,#92400E,#D97706)', icon: <PenIcon />, image: '/images/Criterium 0,5 Faber-Castel.jpeg' },
+  { slug: 'gomme-electrique', name: 'Gomme électrique', price: 40, tag: 'Effacement net',       gradient: 'linear-gradient(135deg,#7C2D8D,#EC4899)', icon: <ZapIcon />,      image: '/images/Gomme Electrique.jpeg' },
+  { slug: 'crayon-gomme-brosse', name: 'Crayon gomme avec brosse', price: 20, tag: 'Polyvalent',   gradient: 'linear-gradient(135deg,#78350F,#F59E0B)', icon: <PencilIcon />,  image: '/images/Crayon Blanc Brosse.jpeg' },
+  { slug: 'papier-raisin', name: 'Papier raisin',    price: 18, tag: 'Texture premium',      gradient: 'linear-gradient(135deg,#134E4A,#0891B2)', icon: <FileIcon />,     image: '/images/Papier Canson Raisin.jpeg' },
+  { slug: 'colle-uhu-liquide', name: 'Colle UHU liquide', price: 15, tag: 'Adhérence forte',      gradient: 'linear-gradient(135deg,#7F1D1D,#EF4444)', icon: <DropletsIcon />, image: '/images/Colle UHU Liquide.jpeg' },
+  { slug: 'mines', name: 'Mines',             price: 10, tag: 'Recharges précises',   gradient: 'linear-gradient(135deg,#1F2937,#4B5563)', icon: <PencilIcon />,   image: '/images/Mines .jpeg' },
 ]
 
 function TiltCard({ product, index }) {
@@ -176,6 +177,21 @@ function TiltCard({ product, index }) {
           >
             <span>→</span> Dispo en story
           </motion.div>
+
+          <Link
+            to={`/commander/${product.slug}`}
+            onClick={e => e.stopPropagation()}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              marginTop: '14px',
+              background: '#FFD600', color: '#06071E',
+              fontFamily: 'Outfit, sans-serif', fontWeight: 800, fontSize: '13px',
+              padding: '11px 16px', borderRadius: '100px',
+              textDecoration: 'none', cursor: 'pointer',
+            }}
+          >
+            Commander
+          </Link>
         </div>
       </motion.div>
     </motion.div>
@@ -222,9 +238,6 @@ export default function Products() {
           }}>
             Tout ce qu&apos;il te faut
           </h2>
-          <p style={{ marginTop: '12px', fontSize: '17px', color: 'rgba(255,255,255,0.5)', fontFamily: 'Rubik, sans-serif' }}>
-            Consulte les stories Instagram pour les disponibilités et les prix du jour
-          </p>
         </motion.div>
 
         {/* Grid */}

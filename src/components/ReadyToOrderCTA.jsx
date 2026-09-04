@@ -29,9 +29,9 @@ export default function ReadyToOrderCTA() {
         lineHeight: 1.1,
         marginBottom: '20px',
       }}>
-        Prêt à commander ?
+        Une question ?
         <br />
-        <span style={{ color: 'var(--accent)' }}>C&apos;est sur WhatsApp.</span>
+        <span style={{ color: 'var(--accent)' }}>On est là.</span>
       </h2>
       <p style={{
         fontSize: '17px',
@@ -39,7 +39,7 @@ export default function ReadyToOrderCTA() {
         fontFamily: 'Rubik, sans-serif',
         marginBottom: '36px',
       }}>
-        Un message suffit. On s&apos;occupe du reste.
+        Écris-nous sur WhatsApp ou Instagram, on répond vite.
       </p>
       <div style={{
         display: 'flex',

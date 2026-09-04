@@ -9,6 +9,8 @@ import Terms from './pages/Terms'
 import Privacy from './pages/Privacy'
 import Contact from './pages/Contact'
 import About from './pages/About'
+import Order from './pages/Order'
+import OrderConfirmation from './pages/OrderConfirmation'
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -26,6 +28,8 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/shop" element={<Shop />} />
+          <Route path="/commander/:slug" element={<Order />} />
+          <Route path="/commande-confirmee" element={<OrderConfirmation />} />
           <Route path="/cgu" element={<Terms />} />
           <Route path="/confidentialite" element={<Privacy />} />
           <Route path="/contact" element={<Contact />} />
