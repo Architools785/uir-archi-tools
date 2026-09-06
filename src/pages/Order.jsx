@@ -44,22 +44,45 @@ export default function Order() {
   const [fullName, setFullName] = useState('')
   const [phone, setPhone] = useState('')
   const [city, setCity] = useState('')
-  const [quantity, setQuantity] = useState(1)
+  const [quantity, setQuantity] = useState(product?.fixedQuantity || 1)
   const [address, setAddress] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState('')
 
   if (!product) return <Navigate to="/shop" replace />
 
   const total = product.price * quantity
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    navigate('/commande-confirmee', {
-      state: {
-        productName: product.name,
-        quantity,
-        total,
-      },
-    })
+    setSubmitError('')
+    setIsSubmitting(true)
+
+    try {
+      const response = await fetch('https://formspree.io/f/moeqnbej', {
+        method: 'POST',
+        headers: { Accept: 'application/json' },
+        body: new FormData(e.target),
+      })
+
+      if (!response.ok) {
+        throw new Error('Formspree submission failed')
+      }
+
+      navigate('/commande-confirmee', {
+        state: {
+          productName: product.name,
+          quantity,
+          total,
+        },
+      })
+    } catch {
+      setSubmitError(
+        "Une erreur est survenue lors de l'envoi de votre commande. Vérifiez votre connexion et réessayez."
+      )
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -148,7 +171,7 @@ export default function Order() {
         >
           <Field label="Nom complet">
             <input
-              type="text" required value={fullName}
+              type="text" required name="Nom complet" value={fullName}
               onChange={e => setFullName(e.target.value)}
               onFocus={focusField} onBlur={blurField}
               style={fieldStyle}
@@ -158,7 +181,7 @@ export default function Order() {
 
           <Field label="Téléphone">
             <input
-              type="tel" required value={phone}
+              type="tel" required name="Téléphone" value={phone}
               onChange={e => setPhone(e.target.value)}
               onFocus={focusField} onBlur={blurField}
               style={fieldStyle}
@@ -168,7 +191,7 @@ export default function Order() {
 
           <Field label="Cité">
             <input
-              type="text" required value={city}
+              type="text" required name="Cité" value={city}
               onChange={e => setCity(e.target.value)}
               onFocus={focusField} onBlur={blurField}
               style={fieldStyle}
@@ -177,29 +200,49 @@ export default function Order() {
           </Field>
 
           <Field label="Quantité">
-            <select
-              required value={quantity}
-              onChange={e => setQuantity(Number(e.target.value))}
-              onFocus={focusField} onBlur={blurField}
-              style={{ ...fieldStyle, cursor: 'pointer' }}
-            >
-              {QUANTITIES.map(q => (
-                <option key={q} value={q} style={{ background: '#0B0C35', color: '#fff' }}>
-                  {q}
-                </option>
-              ))}
-            </select>
+            {product.fixedQuantity ? (
+              <>
+                <div style={{
+                  ...fieldStyle,
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  cursor: 'default',
+                }}>
+                  <span>{product.fixedQuantity}</span>
+                  <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.45)' }}>
+                    Vendu uniquement par paquet de {product.fixedQuantity}
+                  </span>
+                </div>
+                <input type="hidden" name="Quantité" value={product.fixedQuantity} />
+              </>
+            ) : (
+              <select
+                required name="Quantité" value={quantity}
+                onChange={e => setQuantity(Number(e.target.value))}
+                onFocus={focusField} onBlur={blurField}
+                style={{ ...fieldStyle, cursor: 'pointer' }}
+              >
+                {QUANTITIES.map(q => (
+                  <option key={q} value={q} style={{ background: '#0B0C35', color: '#fff' }}>
+                    {q}
+                  </option>
+                ))}
+              </select>
+            )}
           </Field>
 
           <Field label="Adresse complète">
             <textarea
-              required rows={3} value={address}
+              required rows={3} name="Adresse complète" value={address}
               onChange={e => setAddress(e.target.value)}
               onFocus={focusField} onBlur={blurField}
               style={{ ...fieldStyle, resize: 'vertical', fontFamily: 'Rubik, sans-serif' }}
               placeholder="Bâtiment, chambre, repères..."
             />
           </Field>
+
+          <input type="hidden" name="Produit" value={product.name} />
+          <input type="hidden" name="Total à payer" value={`${total} MAD`} />
+          <input type="hidden" name="Date de la commande" value={new Date().toLocaleString('fr-FR')} />
 
           <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -223,8 +266,20 @@ export default function Order() {
             </span>
           </div>
 
+          {submitError && (
+            <p style={{
+              fontFamily: 'Rubik, sans-serif', fontSize: '14px', lineHeight: 1.6,
+              color: '#FF6B6B', background: 'rgba(255,107,107,0.1)',
+              border: '1px solid rgba(255,107,107,0.35)',
+              borderRadius: 'var(--radius-sm)', padding: '14px 18px', margin: 0,
+            }}>
+              {submitError}
+            </p>
+          )}
+
           <motion.button
             type="submit"
+            disabled={isSubmitting}
             style={{
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
               background: '#FFD600', color: '#06071E',
@@ -232,11 +287,13 @@ export default function Order() {
               padding: '17px 30px', borderRadius: '100px',
               boxShadow: '0 0 40px rgba(255,214,0,0.35)',
               marginTop: '8px', width: '100%',
+              opacity: isSubmitting ? 0.7 : 1,
+              cursor: isSubmitting ? 'not-allowed' : 'pointer',
             }}
-            whileHover={reduce ? {} : { scale: 1.03, boxShadow: '0 0 60px rgba(255,214,0,0.55)' }}
-            whileTap={reduce ? {} : { scale: 0.97 }}
+            whileHover={reduce || isSubmitting ? {} : { scale: 1.03, boxShadow: '0 0 60px rgba(255,214,0,0.55)' }}
+            whileTap={reduce || isSubmitting ? {} : { scale: 0.97 }}
           >
-            Confirmer la commande
+            {isSubmitting ? 'Envoi en cours...' : 'Confirmer la commande'}
           </motion.button>
         </motion.form>
       </div>

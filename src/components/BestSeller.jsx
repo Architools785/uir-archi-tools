@@ -26,7 +26,7 @@ export default function BestSeller() {
       <div style={{
         maxWidth: '1100px', margin: '0 auto', position: 'relative', zIndex: 1,
         display: 'grid',
-        gridTemplateColumns: 'minmax(280px, 1fr) minmax(280px, 1fr)',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
         gap: '56px',
         alignItems: 'center',
       }}>
@@ -45,13 +45,13 @@ export default function BestSeller() {
           }}
         >
           <img
-            src="/images/Carton Plume 0,3.jpeg"
+            src="/images/carton-plume-5mm.png"
             alt="Carton plume"
             style={{
               position: 'absolute', inset: 0,
               width: '100%', height: '100%',
               objectFit: 'cover',
-              objectPosition: 'bottom',
+              objectPosition: 'center',
             }}
           />
         </motion.div>
