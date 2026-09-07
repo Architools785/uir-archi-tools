@@ -1,7 +1,9 @@
-import { useState } from 'react'
-import { useParams, useNavigate, Navigate, Link } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { useParams, Navigate, Link } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { PRODUCTS } from '../components/Products'
+import { useCart } from '../context/CartContext'
+import Toast from '../components/Toast'
 
 const QUANTITIES = Array.from({ length: 10 }, (_, i) => i + 1)
 
@@ -37,52 +39,27 @@ function Field({ label, children }) {
 
 export default function Order() {
   const { slug } = useParams()
-  const navigate = useNavigate()
   const reduce = useReducedMotion()
   const product = PRODUCTS.find(p => p.slug === slug)
+  const { addItem, totalCount } = useCart()
 
-  const [fullName, setFullName] = useState('')
-  const [phone, setPhone] = useState('')
-  const [city, setCity] = useState('')
-  const [quantity, setQuantity] = useState(product?.fixedQuantity || 1)
-  const [address, setAddress] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [submitError, setSubmitError] = useState('')
+  const [quantity, setQuantity] = useState(1)
+  const [showToast, setShowToast] = useState(false)
+
+  useEffect(() => {
+    if (!showToast) return
+    const timer = setTimeout(() => setShowToast(false), 2200)
+    return () => clearTimeout(timer)
+  }, [showToast])
 
   if (!product) return <Navigate to="/shop" replace />
 
   const total = product.price * quantity
 
-  const handleSubmit = async (e) => {
+  const handleAddToCart = (e) => {
     e.preventDefault()
-    setSubmitError('')
-    setIsSubmitting(true)
-
-    try {
-      const response = await fetch('https://formspree.io/f/moeqnbej', {
-        method: 'POST',
-        headers: { Accept: 'application/json' },
-        body: new FormData(e.target),
-      })
-
-      if (!response.ok) {
-        throw new Error('Formspree submission failed')
-      }
-
-      navigate('/commande-confirmee', {
-        state: {
-          productName: product.name,
-          quantity,
-          total,
-        },
-      })
-    } catch {
-      setSubmitError(
-        "Une erreur est survenue lors de l'envoi de votre commande. Vérifiez votre connexion et réessayez."
-      )
-    } finally {
-      setIsSubmitting(false)
-    }
+    addItem(product, quantity)
+    setShowToast(true)
   }
 
   return (
@@ -108,7 +85,10 @@ export default function Order() {
           initial={reduce ? false : { opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          style={{ marginBottom: '28px' }}
+          style={{
+            marginBottom: '28px',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          }}
         >
           <Link
             to="/shop"
@@ -121,6 +101,19 @@ export default function Order() {
             onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.5)'}
           >
             ← Retour à la boutique
+          </Link>
+
+          <Link
+            to="/panier"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: '8px',
+              fontFamily: 'Outfit, sans-serif', fontWeight: 700, fontSize: '14px',
+              color: 'rgba(255,255,255,0.5)', transition: 'color 0.2s',
+            }}
+            onMouseEnter={e => e.currentTarget.style.color = '#FFD600'}
+            onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.5)'}
+          >
+            Panier {totalCount > 0 ? `(${totalCount})` : ''} →
           </Link>
         </motion.div>
 
@@ -137,7 +130,7 @@ export default function Order() {
             fontWeight: 600, fontSize: '12px', letterSpacing: '1.5px',
             textTransform: 'uppercase', padding: '5px 14px', borderRadius: '100px', marginBottom: '20px',
           }}>
-            Formulaire de commande
+            Fiche produit
           </span>
           <h1 style={{
             fontFamily: 'Outfit, sans-serif', fontWeight: 900,
@@ -146,18 +139,69 @@ export default function Order() {
           }}>
             {product.name}
           </h1>
-          <span style={{
-            display: 'inline-block',
-            fontFamily: 'Outfit, sans-serif', fontWeight: 800, fontSize: '20px',
-            color: '#06071E', background: '#FFD600',
-            padding: '8px 20px', borderRadius: '100px',
-          }}>
-            {product.price} MAD
-          </span>
+
+          {product.subtitle && (
+            <p style={{
+              fontFamily: 'Outfit, sans-serif', fontWeight: 600, fontSize: '15px',
+              color: '#FFD600', margin: '0 0 10px',
+            }}>
+              {product.subtitle}
+            </p>
+          )}
+
+          {product.contentDescription && (
+            <p style={{
+              fontFamily: 'Rubik, sans-serif', fontSize: '14px', lineHeight: 1.7,
+              color: 'rgba(255,255,255,0.6)', margin: '0 0 20px', maxWidth: '460px',
+              marginLeft: 'auto', marginRight: 'auto',
+            }}>
+              {product.contentDescription}
+            </p>
+          )}
+
+          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: '12px', flexWrap: 'wrap' }}>
+            {product.originalPrice && (
+              <span style={{
+                fontFamily: 'Outfit, sans-serif', fontWeight: 600, fontSize: '16px',
+                color: 'rgba(255,255,255,0.4)', textDecoration: 'line-through',
+              }}>
+                {product.originalPrice} DH
+              </span>
+            )}
+            <span style={{
+              display: 'inline-block',
+              fontFamily: 'Outfit, sans-serif', fontWeight: 800, fontSize: '20px',
+              color: '#06071E', background: '#FFD600',
+              padding: '8px 20px', borderRadius: '100px',
+            }}>
+              {product.price} MAD
+            </span>
+            {product.originalPrice && (
+              <span style={{
+                display: 'inline-flex', alignItems: 'center',
+                background: 'rgba(52,211,153,0.14)', border: '1px solid rgba(52,211,153,0.4)',
+                color: '#34D399', fontFamily: 'Outfit, sans-serif', fontWeight: 800, fontSize: '12px',
+                padding: '5px 12px', borderRadius: '100px',
+              }}>
+                Économise {product.originalPrice - product.price} DH
+              </span>
+            )}
+          </div>
+
+          {product.alwaysFreeShipping && (
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: '8px',
+              background: 'rgba(255,214,0,0.1)', border: '1px solid rgba(255,214,0,0.3)',
+              color: '#FFD600', fontFamily: 'Outfit, sans-serif', fontWeight: 700, fontSize: '13px',
+              padding: '8px 16px', borderRadius: '100px', marginTop: '16px',
+            }}>
+              🚚 Livraison gratuite incluse, peu importe le montant
+            </div>
+          )}
         </motion.div>
 
         <motion.form
-          onSubmit={handleSubmit}
+          onSubmit={handleAddToCart}
           initial={reduce ? false : { opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
@@ -169,54 +213,28 @@ export default function Order() {
             display: 'flex', flexDirection: 'column', gap: '20px',
           }}
         >
-          <Field label="Nom complet">
-            <input
-              type="text" required name="Nom complet" value={fullName}
-              onChange={e => setFullName(e.target.value)}
-              onFocus={focusField} onBlur={blurField}
-              style={fieldStyle}
-              placeholder="Ton nom et prénom"
-            />
-          </Field>
-
-          <Field label="Téléphone">
-            <input
-              type="tel" required name="Téléphone" value={phone}
-              onChange={e => setPhone(e.target.value)}
-              onFocus={focusField} onBlur={blurField}
-              style={fieldStyle}
-              placeholder="06 XX XX XX XX"
-            />
-          </Field>
-
-          <Field label="Cité">
-            <input
-              type="text" required name="Cité" value={city}
-              onChange={e => setCity(e.target.value)}
-              onFocus={focusField} onBlur={blurField}
-              style={fieldStyle}
-              placeholder="Ta cité / résidence"
-            />
-          </Field>
-
-          <Field label="Quantité">
+          <Field label={product.fixedQuantity ? 'Nombre de paquets' : 'Quantité'}>
             {product.fixedQuantity ? (
               <>
-                <div style={{
-                  ...fieldStyle,
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  cursor: 'default',
-                }}>
-                  <span>{product.fixedQuantity}</span>
-                  <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.45)' }}>
-                    Vendu uniquement par paquet de {product.fixedQuantity}
-                  </span>
-                </div>
-                <input type="hidden" name="Quantité" value={product.fixedQuantity} />
+                <select
+                  required value={quantity}
+                  onChange={e => setQuantity(Number(e.target.value))}
+                  onFocus={focusField} onBlur={blurField}
+                  style={{ ...fieldStyle, cursor: 'pointer' }}
+                >
+                  {QUANTITIES.map(q => (
+                    <option key={q} value={q} style={{ background: '#0B0C35', color: '#fff' }}>
+                      {q}
+                    </option>
+                  ))}
+                </select>
+                <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.45)', marginTop: '4px', display: 'block' }}>
+                  Vendu uniquement par paquet de {product.fixedQuantity}
+                </span>
               </>
             ) : (
               <select
-                required name="Quantité" value={quantity}
+                required value={quantity}
                 onChange={e => setQuantity(Number(e.target.value))}
                 onFocus={focusField} onBlur={blurField}
                 style={{ ...fieldStyle, cursor: 'pointer' }}
@@ -230,20 +248,6 @@ export default function Order() {
             )}
           </Field>
 
-          <Field label="Adresse complète">
-            <textarea
-              required rows={3} name="Adresse complète" value={address}
-              onChange={e => setAddress(e.target.value)}
-              onFocus={focusField} onBlur={blurField}
-              style={{ ...fieldStyle, resize: 'vertical', fontFamily: 'Rubik, sans-serif' }}
-              placeholder="Bâtiment, chambre, repères..."
-            />
-          </Field>
-
-          <input type="hidden" name="Produit" value={product.name} />
-          <input type="hidden" name="Total à payer" value={`${total} MAD`} />
-          <input type="hidden" name="Date de la commande" value={new Date().toLocaleString('fr-FR')} />
-
           <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             background: 'rgba(255,214,0,0.1)',
@@ -256,7 +260,7 @@ export default function Order() {
               fontFamily: 'Outfit, sans-serif', fontWeight: 700, fontSize: '14px',
               color: 'rgba(255,255,255,0.75)', letterSpacing: '0.3px',
             }}>
-              Total à payer
+              Sous-total
             </span>
             <span style={{
               fontFamily: 'Outfit, sans-serif', fontWeight: 900, fontSize: '24px',
@@ -266,20 +270,8 @@ export default function Order() {
             </span>
           </div>
 
-          {submitError && (
-            <p style={{
-              fontFamily: 'Rubik, sans-serif', fontSize: '14px', lineHeight: 1.6,
-              color: '#FF6B6B', background: 'rgba(255,107,107,0.1)',
-              border: '1px solid rgba(255,107,107,0.35)',
-              borderRadius: 'var(--radius-sm)', padding: '14px 18px', margin: 0,
-            }}>
-              {submitError}
-            </p>
-          )}
-
           <motion.button
             type="submit"
-            disabled={isSubmitting}
             style={{
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
               background: '#FFD600', color: '#06071E',
@@ -287,16 +279,51 @@ export default function Order() {
               padding: '17px 30px', borderRadius: '100px',
               boxShadow: '0 0 40px rgba(255,214,0,0.35)',
               marginTop: '8px', width: '100%',
-              opacity: isSubmitting ? 0.7 : 1,
-              cursor: isSubmitting ? 'not-allowed' : 'pointer',
+              cursor: 'pointer',
             }}
-            whileHover={reduce || isSubmitting ? {} : { scale: 1.03, boxShadow: '0 0 60px rgba(255,214,0,0.55)' }}
-            whileTap={reduce || isSubmitting ? {} : { scale: 0.97 }}
+            whileHover={reduce ? {} : { scale: 1.03, boxShadow: '0 0 60px rgba(255,214,0,0.55)' }}
+            whileTap={reduce ? {} : { scale: 0.97 }}
           >
-            {isSubmitting ? 'Envoi en cours...' : 'Confirmer la commande'}
+            <CartIcon />
+            {product.ctaLabel || 'Ajouter au panier'}
           </motion.button>
+
+          <Link
+            to="/panier"
+            style={{
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              fontFamily: 'Outfit, sans-serif', fontWeight: 700, fontSize: '14px',
+              color: 'rgba(255,255,255,0.55)', transition: 'color 0.2s',
+            }}
+            onMouseEnter={e => e.currentTarget.style.color = '#FFD600'}
+            onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.55)'}
+          >
+            Voir mon panier et passer la commande →
+          </Link>
         </motion.form>
       </div>
+
+      <Toast show={showToast}>
+        <CheckIcon /> Ajouté au panier ✓
+      </Toast>
     </section>
+  )
+}
+
+function CartIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="9" cy="21" r="1" />
+      <circle cx="20" cy="21" r="1" />
+      <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+    </svg>
+  )
+}
+
+function CheckIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
   )
 }

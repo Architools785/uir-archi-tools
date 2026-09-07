@@ -10,6 +10,8 @@ import Privacy from './pages/Privacy'
 import Contact from './pages/Contact'
 import About from './pages/About'
 import Order from './pages/Order'
+import Cart from './pages/Cart'
+import Checkout from './pages/Checkout'
 import OrderConfirmation from './pages/OrderConfirmation'
 
 function ScrollToTop() {
@@ -29,6 +31,8 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/shop" element={<Shop />} />
           <Route path="/commander/:slug" element={<Order />} />
+          <Route path="/panier" element={<Cart />} />
+          <Route path="/finaliser-commande" element={<Checkout />} />
           <Route path="/commande-confirmee" element={<OrderConfirmation />} />
           <Route path="/cgu" element={<Terms />} />
           <Route path="/confidentialite" element={<Privacy />} />

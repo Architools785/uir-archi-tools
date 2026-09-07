@@ -68,3 +68,35 @@ button {
     transition-duration: 0.01ms !important;
   }
 }
+
+.cart-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto auto;
+  align-items: center;
+  gap: 18px;
+  padding: 20px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+@media (max-width: 640px) {
+  .cart-row {
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "name remove"
+      "price price"
+      "qty qty"
+      "subtotal subtotal";
+    row-gap: 10px;
+  }
+  .cart-row-name { grid-area: name; }
+  .cart-row-remove { grid-area: remove; }
+  .cart-row-price { grid-area: price; }
+  .cart-row-qty { grid-area: qty; }
+  .cart-row-subtotal { grid-area: subtotal; text-align: left !important; }
+}
+
+@media (max-width: 720px) {
+  .featured-pack {
+    grid-template-columns: 1fr !important;
+  }
+}

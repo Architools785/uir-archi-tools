@@ -1,20 +1,38 @@
 import { useState, useRef } from 'react'
 import { motion, useReducedMotion, useMotionValue, useSpring, useTransform, useMotionTemplate, useInView } from 'framer-motion'
 import { Link } from 'react-router-dom'
+import ShippingBanner from './ShippingBanner'
+import FeaturedPack from './FeaturedPack'
 
 export const PRODUCTS = [
-  { slug: 'recharge-porte-mine-7mm', name: 'Recharge porte-mine 7mm', price: 0, tag: 'Mine renforcée',       gradient: 'linear-gradient(135deg,#1F2937,#4B5563)', image: '/images/recharge-porte-mine-7mm.png', imageFit: 'cover' },
-  { slug: 'recharge-porte-mine-5mm', name: 'Recharge porte-mine 5mm', price: 0, tag: 'Mine fine précise',     gradient: 'linear-gradient(135deg,#111827,#374151)', image: '/images/recharge-porte-mine-5mm.png', imageFit: 'cover' },
-  { slug: 'porte-gomme', name: 'Porte gomme',                          price: 0, tag: 'Sans poussière',        gradient: 'linear-gradient(135deg,#78350F,#F59E0B)', image: '/images/porte-gomme.png', imageFit: 'cover' },
-  { slug: 'papier-a1', name: 'Papier A1',                              price: 0, tag: 'Grand format',          gradient: 'linear-gradient(135deg,#0E4D6E,#0D9488)', image: '/images/papier-a1.png', imageFit: 'cover' },
-  { slug: 'papier-a3', name: 'Papier A3 (paquet)',                     price: 0, tag: 'Qualité pro',           gradient: 'linear-gradient(135deg,#065F46,#059669)', image: '/images/papier-a3.png', imageFit: 'cover', fixedQuantity: 10 },
-  { slug: 'carton-plume-3mm', name: 'Carton plume 3mm',                price: 0, tag: 'Coupe précise',         gradient: 'linear-gradient(135deg,#1A1BA0,#2D2FC4)', image: '/images/carton-plume-3mm.png', imageFit: 'cover' },
-  { slug: 'carton-plume-5mm', name: 'Carton plume 5mm',                price: 0, tag: 'Structure solide',      gradient: 'linear-gradient(135deg,#2D2FC4,#6B21A8)', image: '/images/carton-plume-5mm.png', imageFit: 'cover' },
-  { slug: 'marqueur-noir-permanent', name: 'Marqueur Noir Permanent',  price: 0, tag: 'Encre permanente',      gradient: 'linear-gradient(135deg,#18181B,#3F3F46)', image: '/images/marqueur-noir-permanent.png', imageFit: 'cover' },
-  { slug: 'porte-mine-5mm', name: 'Porte-mine 5mm',                    price: 0, tag: 'Trait constant',        gradient: 'linear-gradient(135deg,#1E3A8A,#3B82F6)', image: '/images/porte-mine-5mm.png', imageFit: 'cover' },
-  { slug: 'porte-mine-7mm', name: 'Porte-mine 7mm',                    price: 0, tag: 'Prise en main solide',  gradient: 'linear-gradient(135deg,#312E81,#4F46E5)', image: '/images/porte-mine-7mm.png', imageFit: 'cover' },
-  { slug: 'raisin', name: 'Raisin',                                    price: 0, tag: 'Texture premium',       gradient: 'linear-gradient(135deg,#134E4A,#0891B2)', image: '/images/raisin.png', imageFit: 'cover' },
-  { slug: 'uhu', name: 'UHU',                                          price: 0, tag: 'Adhérence forte',       gradient: 'linear-gradient(135deg,#7F1D1D,#EF4444)', image: '/images/uhu.png', imageFit: 'cover' },
+  { slug: 'recharge-porte-mine-7mm', name: 'Recharge porte-mine 7mm', price: 10, tag: 'Mine renforcée',       gradient: 'linear-gradient(135deg,#1F2937,#4B5563)', image: '/images/recharge-porte-mine-7mm.png', imageFit: 'cover' },
+  { slug: 'recharge-porte-mine-5mm', name: 'Recharge porte-mine 5mm', price: 10, tag: 'Mine fine précise',     gradient: 'linear-gradient(135deg,#111827,#374151)', image: '/images/recharge-porte-mine-5mm.png', imageFit: 'cover' },
+  { slug: 'porte-gomme', name: 'Porte gomme',                          price: 20, tag: 'Sans poussière',        gradient: 'linear-gradient(135deg,#78350F,#F59E0B)', image: '/images/porte-gomme.png', imageFit: 'cover' },
+  { slug: 'papier-a1', name: 'Papier A1',                              price: 15, tag: 'Grand format',          gradient: 'linear-gradient(135deg,#0E4D6E,#0D9488)', image: '/images/papier-a1.png', imageFit: 'cover' },
+  { slug: 'papier-a3', name: 'Papier A3 (paquet)',                     price: 35, tag: 'Qualité pro',           gradient: 'linear-gradient(135deg,#065F46,#059669)', image: '/images/papier-a3.png', imageFit: 'cover', fixedQuantity: 10 },
+  { slug: 'carton-plume-3mm', name: 'Carton plume 3mm',                price: 70, tag: 'Coupe précise',         gradient: 'linear-gradient(135deg,#1A1BA0,#2D2FC4)', image: '/images/carton-plume-3mm.png', imageFit: 'cover' },
+  { slug: 'carton-plume-5mm', name: 'Carton plume 5mm',                price: 75, tag: 'Structure solide',      gradient: 'linear-gradient(135deg,#2D2FC4,#6B21A8)', image: '/images/carton-plume-5mm.png', imageFit: 'cover' },
+  { slug: 'marqueur-noir-permanent', name: 'Marqueur Noir Permanent',  price: 15, tag: 'Encre permanente',      gradient: 'linear-gradient(135deg,#18181B,#3F3F46)', image: '/images/marqueur-noir-permanent.png', imageFit: 'cover' },
+  { slug: 'porte-mine-5mm', name: 'Porte-mine 5mm',                    price: 15, tag: 'Trait constant',        gradient: 'linear-gradient(135deg,#1E3A8A,#3B82F6)', image: '/images/porte-mine-5mm.png', imageFit: 'cover' },
+  { slug: 'porte-mine-7mm', name: 'Porte-mine 7mm',                    price: 15, tag: 'Prise en main solide',  gradient: 'linear-gradient(135deg,#312E81,#4F46E5)', image: '/images/porte-mine-7mm.png', imageFit: 'cover' },
+  { slug: 'raisin', name: 'Raisin',                                    price: 7, tag: 'Texture premium',       gradient: 'linear-gradient(135deg,#134E4A,#0891B2)', image: '/images/raisin.png', imageFit: 'cover' },
+  { slug: 'uhu', name: 'UHU',                                          price: 17, tag: 'Adhérence forte',       gradient: 'linear-gradient(135deg,#7F1D1D,#EF4444)', image: '/images/uhu.png', imageFit: 'cover' },
+  {
+    slug: 'pack-debutant-archi',
+    name: '📦 Pack Débutant Archi',
+    subtitle: "Tout ce qu'il te faut pour démarrer l'année sereinement 🎓",
+    contentDescription: "2 cartons plume 5mm, 1 critérium 5mm, 1 critérium 7mm, 1 porte-gomme, 4 raisins, 1 UHU, 1 paquet A3 (10 feuilles), 1 feutre noir + 5 feuilles A4 offertes 🎁",
+    price: 269,
+    originalPrice: 295,
+    tag: 'Offre spéciale',
+    gradient: 'linear-gradient(135deg,#7A5C00,#FFD600)',
+    image: '/images/pack-debutant-archi.png',
+    imageFit: 'cover',
+    featured: true,
+    alwaysFreeShipping: true,
+    ctaLabel: 'Ajouter le pack au panier',
+    unitLabel: 'pack',
+  },
 ]
 
 function TiltCard({ product, index }) {
@@ -171,6 +189,14 @@ function TiltCard({ product, index }) {
           <h3 style={{ fontFamily: 'Outfit, sans-serif', fontWeight: 700, fontSize: '16px', color: '#fff', lineHeight: 1.3 }}>
             {product.name}
           </h3>
+          <div style={{
+            display: 'inline-block', marginTop: '10px',
+            fontFamily: 'Outfit, sans-serif', fontWeight: 800, fontSize: '15px',
+            color: '#06071E', background: '#FFD600',
+            padding: '4px 12px', borderRadius: '100px',
+          }}>
+            {product.price} MAD
+          </div>
           <motion.div
             variants={{
               idle: { x: 0, opacity: 0.45, color: 'rgba(255,255,255,0.45)' },
@@ -243,13 +269,17 @@ export default function Products() {
           </h2>
         </motion.div>
 
+        <ShippingBanner />
+
+        <FeaturedPack product={PRODUCTS.find(p => p.featured)} />
+
         {/* Grid */}
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))',
           gap: '22px',
         }}>
-          {PRODUCTS.map((p, i) => <TiltCard key={p.name} product={p} index={i} />)}
+          {PRODUCTS.filter(p => !p.featured).map((p, i) => <TiltCard key={p.name} product={p} index={i} />)}
         </div>
 
         {/* CTA */}

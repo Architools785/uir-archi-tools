@@ -30,9 +30,11 @@ export default function OrderConfirmation() {
   const reduce = useReducedMotion()
   const state = location.state
 
-  if (!state) return <Navigate to="/shop" replace />
+  if (!state || !Array.isArray(state.items) || state.items.length === 0) {
+    return <Navigate to="/shop" replace />
+  }
 
-  const { productName, quantity, total } = state
+  const { items, subtotal, shippingFee, total } = state
 
   return (
     <section style={{
@@ -106,8 +108,17 @@ export default function OrderConfirmation() {
             marginBottom: '36px',
           }}
         >
-          <RecapRow label="Produit" value={productName} />
-          <RecapRow label="Quantité" value={quantity} />
+          {items.map((item, idx) => (
+            <RecapRow
+              key={idx}
+              label={item.name}
+              value={item.fixedQuantity
+                ? `${item.quantity} paquet${item.quantity > 1 ? 's' : ''} de ${item.fixedQuantity} — ${item.subtotal} MAD`
+                : `${item.quantity} ${item.unitLabel || 'unité'}${item.quantity > 1 ? 's' : ''} — ${item.subtotal} MAD`}
+            />
+          ))}
+          {typeof subtotal === 'number' && <RecapRow label="Sous-total" value={`${subtotal} MAD`} />}
+          {typeof shippingFee === 'number' && <RecapRow label="Livraison" value={shippingFee === 0 ? 'Gratuite' : `${shippingFee} MAD`} />}
           <RecapRow label="Total" value={`${total} MAD`} accent />
         </motion.div>
 

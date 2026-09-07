@@ -1,5 +1,6 @@
 import { motion, useReducedMotion } from 'framer-motion'
 import { Link } from 'react-router-dom'
+import { useCart } from '../context/CartContext'
 
 const MotionLink = motion(Link)
 
@@ -7,6 +8,7 @@ const IG_LINK = 'https://www.instagram.com/uir.archi.tools'
 
 export default function Navbar() {
   const reduce = useReducedMotion()
+  const { totalCount } = useCart()
 
   return (
     <motion.nav
@@ -82,6 +84,46 @@ export default function Navbar() {
         </motion.a>
 
         <MotionLink
+          to="/panier"
+          aria-label="Voir le panier"
+          style={{
+            position: 'relative',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '36px',
+            height: '36px',
+            borderRadius: '50%',
+            background: 'rgba(255,255,255,0.06)',
+            border: '1px solid rgba(255,255,255,0.12)',
+            color: 'rgba(255,255,255,0.75)',
+          }}
+          whileHover={reduce ? {} : {
+            scale: 1.1,
+            color: '#FFD600',
+            borderColor: 'rgba(255,214,0,0.45)',
+            background: 'rgba(255,214,0,0.1)',
+          }}
+          whileTap={reduce ? {} : { scale: 0.94 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 16 }}
+        >
+          <CartIcon />
+          {totalCount > 0 && (
+            <span style={{
+              position: 'absolute', top: '-4px', right: '-4px',
+              minWidth: '17px', height: '17px', padding: '0 4px',
+              borderRadius: '100px',
+              background: '#FFD600', color: '#06071E',
+              fontFamily: 'Outfit, sans-serif', fontWeight: 800, fontSize: '10px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 0 0 2px #06071E',
+            }}>
+              {totalCount}
+            </span>
+          )}
+        </MotionLink>
+
+        <MotionLink
           to="/shop"
           style={{
             display: 'inline-flex', alignItems: 'center', gap: '8px',
@@ -98,6 +140,16 @@ export default function Navbar() {
         </MotionLink>
       </div>
     </motion.nav>
+  )
+}
+
+function CartIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="9" cy="21" r="1" />
+      <circle cx="20" cy="21" r="1" />
+      <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+    </svg>
   )
 }
 
