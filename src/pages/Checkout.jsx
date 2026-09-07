@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useNavigate, Navigate, Link } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { useCart } from '../context/CartContext'
@@ -52,8 +52,9 @@ export default function Checkout() {
   const [address, setAddress] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
+  const orderPlacedRef = useRef(false)
 
-  if (items.length === 0) return <Navigate to="/panier" replace />
+  if (items.length === 0 && !orderPlacedRef.current) return <Navigate to="/panier" replace />
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -87,6 +88,9 @@ export default function Checkout() {
         throw new Error('Formspree submission failed')
       }
 
+      // Sauvegarde une copie complète de la commande avant de toucher au panier,
+      // car clearCart() vide `items` et ferait échouer la page de confirmation
+      // si elle dépendait du panier en direct.
       const confirmedItems = items.map(item => ({
         name: item.name,
         quantity: item.quantity,
@@ -94,17 +98,19 @@ export default function Checkout() {
         unitLabel: item.unitLabel,
         subtotal: item.price * item.quantity,
       }))
+      const confirmedOrder = {
+        items: confirmedItems,
+        subtotal: totalPrice,
+        shippingFee,
+        total: orderTotal,
+      }
 
+      // Empêche le garde-fou "panier vide" de rediriger vers /panier pendant
+      // la transition, puis on navigue vers la confirmation avec la copie
+      // sauvegardée AVANT de vider le panier.
+      orderPlacedRef.current = true
+      navigate('/commande-confirmee', { state: confirmedOrder, replace: true })
       clearCart()
-
-      navigate('/commande-confirmee', {
-        state: {
-          items: confirmedItems,
-          subtotal: totalPrice,
-          shippingFee,
-          total: orderTotal,
-        },
-      })
     } catch {
       setSubmitError(
         "Une erreur est survenue lors de l'envoi de votre commande. Vérifiez votre connexion et réessayez."
