@@ -2,6 +2,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { useCart } from '../context/CartContext'
 import FreeShippingProgress from '../components/FreeShippingProgress'
+import FulfillmentSelector from '../components/FulfillmentSelector'
 
 const QUANTITIES = Array.from({ length: 20 }, (_, i) => i + 1)
 
@@ -87,7 +88,7 @@ function CartRow({ item }) {
 export default function Cart() {
   const reduce = useReducedMotion()
   const navigate = useNavigate()
-  const { items, totalPrice, totalCount, shippingFee, orderTotal } = useCart()
+  const { items, totalPrice, totalCount, shippingFee, orderTotal, isPickup } = useCart()
 
   return (
     <section style={{
@@ -200,6 +201,21 @@ export default function Cart() {
             <motion.div
               initial={reduce ? false : { opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.18 }}
+              style={{ marginTop: '24px' }}
+            >
+              <div style={{
+                fontFamily: 'Outfit, sans-serif', fontWeight: 700, fontSize: '13px',
+                color: 'rgba(255,255,255,0.7)', letterSpacing: '0.3px', marginBottom: '10px',
+              }}>
+                Mode de récupération
+              </div>
+              <FulfillmentSelector />
+            </motion.div>
+
+            <motion.div
+              initial={reduce ? false : { opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
               style={{ marginTop: '24px' }}
             >
@@ -238,7 +254,7 @@ export default function Cart() {
                   fontFamily: 'Outfit, sans-serif', fontWeight: 600, fontSize: '14px',
                   color: 'rgba(255,255,255,0.6)',
                 }}>
-                  Frais de livraison
+                  {isPickup ? 'Retrait sur place' : 'Frais de livraison'}
                 </span>
                 <span style={{
                   fontFamily: 'Outfit, sans-serif', fontWeight: 700, fontSize: '15px',

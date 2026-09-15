@@ -3,6 +3,7 @@ import { useNavigate, Navigate, Link } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { useCart } from '../context/CartContext'
 import FreeShippingProgress from '../components/FreeShippingProgress'
+import FulfillmentSelector from '../components/FulfillmentSelector'
 
 const fieldStyle = {
   width: '100%',
@@ -44,7 +45,7 @@ function itemLabel(item) {
 export default function Checkout() {
   const reduce = useReducedMotion()
   const navigate = useNavigate()
-  const { items, totalPrice, totalCount, shippingFee, orderTotal, clearCart } = useCart()
+  const { items, totalPrice, totalCount, shippingFee, orderTotal, clearCart, isPickup } = useCart()
 
   const [fullName, setFullName] = useState('')
   const [phone, setPhone] = useState('')
@@ -74,6 +75,7 @@ export default function Checkout() {
       formData.append('Récapitulatif complet', items.map(itemLabel).join('\n'))
       formData.append("Nombre d'articles", totalCount)
       formData.append('Sous-total produits', `${totalPrice} MAD`)
+      formData.append('Mode de récupération', isPickup ? 'Retrait sur place' : 'Livraison sur le campus')
       formData.append('Frais de livraison', `${shippingFee} MAD`)
       formData.append('Total à payer', `${orderTotal} MAD`)
       formData.append('Date de la commande', new Date().toLocaleString('fr-FR'))
@@ -103,6 +105,7 @@ export default function Checkout() {
         subtotal: totalPrice,
         shippingFee,
         total: orderTotal,
+        isPickup,
       }
 
       // Empêche le garde-fou "panier vide" de rediriger vers /panier pendant
@@ -228,7 +231,7 @@ export default function Checkout() {
             </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <span style={{ fontFamily: 'Outfit, sans-serif', fontWeight: 600, fontSize: '13px', color: 'rgba(255,255,255,0.6)' }}>
-                Frais de livraison
+                {isPickup ? 'Retrait sur place' : 'Frais de livraison'}
               </span>
               <span style={{ fontFamily: 'Outfit, sans-serif', fontWeight: 700, fontSize: '14px', color: shippingFee === 0 ? '#34D399' : 'rgba(255,255,255,0.8)' }}>
                 {shippingFee} MAD
@@ -246,6 +249,21 @@ export default function Checkout() {
               </span>
             </div>
           </div>
+        </motion.div>
+
+        <motion.div
+          initial={reduce ? false : { opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.16 }}
+          style={{ marginBottom: '24px' }}
+        >
+          <div style={{
+            fontFamily: 'Outfit, sans-serif', fontWeight: 700, fontSize: '13px',
+            color: 'rgba(255,255,255,0.7)', letterSpacing: '0.3px', marginBottom: '10px',
+          }}>
+            Mode de récupération
+          </div>
+          <FulfillmentSelector compact />
         </motion.div>
 
         <motion.div

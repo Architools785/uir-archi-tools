@@ -34,7 +34,7 @@ export default function OrderConfirmation() {
     return <Navigate to="/shop" replace />
   }
 
-  const { items, subtotal, shippingFee, total } = state
+  const { items, subtotal, shippingFee, total, isPickup } = state
 
   return (
     <section style={{
@@ -92,7 +92,9 @@ export default function OrderConfirmation() {
             color: 'rgba(255,255,255,0.55)', lineHeight: 1.7, marginBottom: '36px',
           }}
         >
-          On te contacte très vite pour organiser la livraison sur ton campus.
+          {isPickup
+            ? 'On te contacte très vite pour organiser le retrait de ta commande.'
+            : 'On te contacte très vite pour organiser la livraison sur ton campus.'}
         </motion.p>
 
         <motion.div
@@ -118,7 +120,13 @@ export default function OrderConfirmation() {
             />
           ))}
           {typeof subtotal === 'number' && <RecapRow label="Sous-total" value={`${subtotal} MAD`} />}
-          {typeof shippingFee === 'number' && <RecapRow label="Livraison" value={shippingFee === 0 ? 'Gratuite' : `${shippingFee} MAD`} />}
+          <RecapRow label="Mode de récupération" value={isPickup ? 'Retrait sur place' : 'Livraison sur le campus'} />
+          {typeof shippingFee === 'number' && (
+            <RecapRow
+              label={isPickup ? 'Frais de retrait' : 'Frais de livraison'}
+              value={shippingFee === 0 ? 'Gratuite' : `${shippingFee} MAD`}
+            />
+          )}
           <RecapRow label="Total" value={`${total} MAD`} accent />
         </motion.div>
 
