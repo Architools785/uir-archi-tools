@@ -7,18 +7,18 @@ const MotionLink = motion(Link)
 
 const STEPS = [
   {
-    number: '01', title: 'Consulte le stock',
-    desc: 'Regarde les stories Instagram @uir.archi.tools pour voir les produits disponibles et les prix du jour.',
+    number: '01', title: 'Parcours la boutique',
+    desc: 'Découvre tous nos produits directement sur le site, avec les prix à jour et les stocks disponibles.',
     icon: <EyeIcon />, color: '#FFD600',
   },
   {
-    number: '02', title: 'Envoie ta commande',
-    desc: 'Écris-nous sur WhatsApp avec les produits que tu veux. On confirme ta commande en quelques minutes.',
+    number: '02', title: 'Ajoute au panier et commande',
+    desc: 'Ajoute un ou plusieurs produits à ton panier, remplis tes informations une seule fois, et confirme ta commande en ligne.',
     icon: <MessageIcon />, color: '#25D366',
   },
   {
-    number: '03', title: 'Livraison sur campus',
-    desc: "On livre directement à l'UIR. Rapide, pratique, sans te déplacer hors campus.",
+    number: '03', title: 'Livraison ou retrait',
+    desc: "Livraison gratuite sur le campus dès 35 DH (5 DH sinon), ou viens récupérer ta commande toi-même sans frais.",
     icon: <TruckIcon />, color: '#60A5FA',
   },
 ]
