@@ -4,6 +4,7 @@ import { motion, useReducedMotion } from 'framer-motion'
 import { useCart } from '../context/CartContext'
 import FreeShippingProgress from '../components/FreeShippingProgress'
 import FulfillmentSelector from '../components/FulfillmentSelector'
+import PromoCodeField from '../components/PromoCodeField'
 
 const fieldStyle = {
   width: '100%',
@@ -45,7 +46,10 @@ function itemLabel(item) {
 export default function Checkout() {
   const reduce = useReducedMotion()
   const navigate = useNavigate()
-  const { items, totalPrice, totalCount, shippingFee, orderTotal, clearCart, isPickup } = useCart()
+  const {
+    items, totalPrice, totalCount, shippingFee, orderTotal, clearCart, isPickup,
+    appliedPromoCode, isPromoActive, promoDiscount,
+  } = useCart()
 
   const [fullName, setFullName] = useState('')
   const [phone, setPhone] = useState('')
@@ -75,6 +79,8 @@ export default function Checkout() {
       formData.append('Récapitulatif complet', items.map(itemLabel).join('\n'))
       formData.append("Nombre d'articles", totalCount)
       formData.append('Sous-total produits', `${totalPrice} MAD`)
+      formData.append('Code promo utilisé', isPromoActive ? appliedPromoCode : 'Aucun')
+      formData.append('Réduction code promo', `${promoDiscount} MAD`)
       formData.append('Mode de récupération', isPickup ? 'Retrait sur place' : 'Livraison sur le campus')
       formData.append('Frais de livraison', `${shippingFee} MAD`)
       formData.append('Total à payer', `${orderTotal} MAD`)
@@ -103,6 +109,8 @@ export default function Checkout() {
       const confirmedOrder = {
         items: confirmedItems,
         subtotal: totalPrice,
+        promoCode: isPromoActive ? appliedPromoCode : null,
+        promoDiscount,
         shippingFee,
         total: orderTotal,
         isPickup,
@@ -229,6 +237,16 @@ export default function Checkout() {
                 {totalPrice} MAD
               </span>
             </div>
+            {promoDiscount > 0 && (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontFamily: 'Outfit, sans-serif', fontWeight: 600, fontSize: '13px', color: 'rgba(255,255,255,0.6)' }}>
+                  Réduction code promo
+                </span>
+                <span style={{ fontFamily: 'Outfit, sans-serif', fontWeight: 700, fontSize: '14px', color: '#34D399' }}>
+                  -{promoDiscount} MAD
+                </span>
+              </div>
+            )}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <span style={{ fontFamily: 'Outfit, sans-serif', fontWeight: 600, fontSize: '13px', color: 'rgba(255,255,255,0.6)' }}>
                 {isPickup ? 'Retrait sur place' : 'Frais de livraison'}
@@ -264,6 +282,21 @@ export default function Checkout() {
             Mode de récupération
           </div>
           <FulfillmentSelector compact />
+        </motion.div>
+
+        <motion.div
+          initial={reduce ? false : { opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.17 }}
+          style={{ marginBottom: '24px' }}
+        >
+          <div style={{
+            fontFamily: 'Outfit, sans-serif', fontWeight: 700, fontSize: '13px',
+            color: 'rgba(255,255,255,0.7)', letterSpacing: '0.3px', marginBottom: '10px',
+          }}>
+            Code promo
+          </div>
+          <PromoCodeField compact />
         </motion.div>
 
         <motion.div

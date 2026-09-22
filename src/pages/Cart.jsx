@@ -3,6 +3,7 @@ import { motion, useReducedMotion } from 'framer-motion'
 import { useCart } from '../context/CartContext'
 import FreeShippingProgress from '../components/FreeShippingProgress'
 import FulfillmentSelector from '../components/FulfillmentSelector'
+import PromoCodeField from '../components/PromoCodeField'
 
 const QUANTITIES = Array.from({ length: 20 }, (_, i) => i + 1)
 
@@ -88,7 +89,7 @@ function CartRow({ item }) {
 export default function Cart() {
   const reduce = useReducedMotion()
   const navigate = useNavigate()
-  const { items, totalPrice, totalCount, shippingFee, orderTotal, isPickup } = useCart()
+  const { items, totalPrice, totalCount, shippingFee, orderTotal, isPickup, promoDiscount } = useCart()
 
   return (
     <section style={{
@@ -216,6 +217,21 @@ export default function Cart() {
             <motion.div
               initial={reduce ? false : { opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.19 }}
+              style={{ marginTop: '24px' }}
+            >
+              <div style={{
+                fontFamily: 'Outfit, sans-serif', fontWeight: 700, fontSize: '13px',
+                color: 'rgba(255,255,255,0.7)', letterSpacing: '0.3px', marginBottom: '10px',
+              }}>
+                Code promo
+              </div>
+              <PromoCodeField />
+            </motion.div>
+
+            <motion.div
+              initial={reduce ? false : { opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
               style={{ marginTop: '24px' }}
             >
@@ -249,6 +265,22 @@ export default function Cart() {
                   {totalPrice} MAD
                 </span>
               </div>
+              {promoDiscount > 0 && (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{
+                    fontFamily: 'Outfit, sans-serif', fontWeight: 600, fontSize: '14px',
+                    color: 'rgba(255,255,255,0.6)',
+                  }}>
+                    Réduction code promo
+                  </span>
+                  <span style={{
+                    fontFamily: 'Outfit, sans-serif', fontWeight: 700, fontSize: '15px',
+                    color: '#34D399',
+                  }}>
+                    -{promoDiscount} MAD
+                  </span>
+                </div>
+              )}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span style={{
                   fontFamily: 'Outfit, sans-serif', fontWeight: 600, fontSize: '14px',

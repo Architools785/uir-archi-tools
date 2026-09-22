@@ -39,6 +39,7 @@ export const PRODUCTS = [
     imageFit: 'cover',
     featured: true,
     alwaysFreeShipping: true,
+    promoExcluded: true, // déjà en promo (prix réduit) : non cumulable avec un code promo
     ctaLabel: 'Ajouter le pack au panier',
     unitLabel: 'pack',
   },

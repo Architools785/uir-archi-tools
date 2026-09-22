@@ -34,7 +34,7 @@ export default function OrderConfirmation() {
     return <Navigate to="/shop" replace />
   }
 
-  const { items, subtotal, shippingFee, total, isPickup } = state
+  const { items, subtotal, promoCode, promoDiscount, shippingFee, total, isPickup } = state
 
   return (
     <section style={{
@@ -120,6 +120,9 @@ export default function OrderConfirmation() {
             />
           ))}
           {typeof subtotal === 'number' && <RecapRow label="Sous-total" value={`${subtotal} MAD`} />}
+          {typeof promoDiscount === 'number' && promoDiscount > 0 && (
+            <RecapRow label={`Code promo ${promoCode || ''}`} value={`-${promoDiscount} MAD`} />
+          )}
           <RecapRow label="Mode de récupération" value={isPickup ? 'Retrait sur place' : 'Livraison sur le campus'} />
           {typeof shippingFee === 'number' && (
             <RecapRow
