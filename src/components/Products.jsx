@@ -26,6 +26,9 @@ export const PRODUCTS = [
   { slug: 'scotch-tesa', name: 'Scotch Tesa', price: 35, tag: 'Fixation propre', gradient: 'linear-gradient(135deg,#B91C1C,#F87171)', image: '/images/Scotch%20Tesa.png', imageFit: 'cover' },
   { slug: 'trace-lettres-grand', name: 'Trace lettres (grand)', price: 15, tag: 'Lettres nettes', gradient: 'linear-gradient(135deg,#4C1D95,#A78BFA)', image: '/images/Trace%20lettres%20%28%20grand%20%29.png', imageFit: 'cover' },
   { slug: 'trace-lettres-petit', name: 'Trace lettres (petit)', price: 10, tag: 'Écriture précise', gradient: 'linear-gradient(135deg,#3730A3,#818CF8)', image: '/images/Trace%20Lettres%20%28%20petit%20%29.png', imageFit: 'cover' },
+  { slug: 'carnet-de-calque-a3', name: 'Carnet de Calque A3', price: 100, tag: 'Transparence idéale', gradient: 'linear-gradient(135deg,#134E4A,#14B8A6)', image: '/images/Carnet%20de%20Calque%20A3.png', imageFit: 'cover' },
+  { slug: 'carnet-de-croquis-a3', name: 'Carnet de Croquis A3', price: 210, tag: 'Grand format', gradient: 'linear-gradient(135deg,#7C2D12,#EA580C)', image: '/images/Carnet%20de%20Croquis%20A3.png', imageFit: 'cover' },
+  { slug: 'carnet-de-croquis-a4', name: 'Carnet de Croquis A4', price: 110, tag: 'Format nomade', gradient: 'linear-gradient(135deg,#581C87,#A855F7)', image: '/images/Carnet%20de%20Croquis%20A4.png', imageFit: 'cover' },
   {
     slug: 'pack-debutant-archi',
     name: '📦 Pack Débutant Archi',
