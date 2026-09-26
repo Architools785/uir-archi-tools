@@ -1,5 +1,6 @@
 import { motion, useReducedMotion } from 'framer-motion'
 import { Link } from 'react-router-dom'
+import OutOfStockBadge from './OutOfStockBadge'
 
 export default function FeaturedPack({ product }) {
   const reduce = useReducedMotion()
@@ -45,6 +46,9 @@ export default function FeaturedPack({ product }) {
         }}>
           ⭐ Offre spéciale
         </div>
+        {product.outOfStock && (
+          <OutOfStockBadge style={{ position: 'absolute', top: '56px', left: '18px', zIndex: 2 }} />
+        )}
 
         {/* Image */}
         <div style={{
@@ -61,6 +65,7 @@ export default function FeaturedPack({ product }) {
                 position: 'absolute', inset: 0,
                 width: '100%', height: '100%',
                 objectFit: product.imageFit || 'cover',
+                filter: product.outOfStock ? 'grayscale(0.85) brightness(0.6)' : 'none',
               }}
             />
           )}
@@ -132,20 +137,37 @@ export default function FeaturedPack({ product }) {
             </div>
           )}
 
-          <Link
-            to={`/commander/${product.slug}`}
-            style={{
-              display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
-              alignSelf: 'flex-start',
-              background: '#FFD600', color: '#06071E',
-              fontFamily: 'Outfit, sans-serif', fontWeight: 800, fontSize: '15px',
-              padding: '15px 30px', borderRadius: '100px',
-              boxShadow: '0 0 30px rgba(255,214,0,0.35)',
-              textDecoration: 'none', cursor: 'pointer', marginTop: '10px',
-            }}
-          >
-            {product.ctaLabel || 'Commander le pack'}
-          </Link>
+          {product.outOfStock ? (
+            <span
+              aria-disabled="true"
+              style={{
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                alignSelf: 'flex-start',
+                background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.45)',
+                border: '1px solid rgba(255,255,255,0.12)',
+                fontFamily: 'Outfit, sans-serif', fontWeight: 800, fontSize: '15px',
+                padding: '14px 30px', borderRadius: '100px',
+                cursor: 'not-allowed', marginTop: '10px',
+              }}
+            >
+              Indisponible
+            </span>
+          ) : (
+            <Link
+              to={`/commander/${product.slug}`}
+              style={{
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
+                alignSelf: 'flex-start',
+                background: '#FFD600', color: '#06071E',
+                fontFamily: 'Outfit, sans-serif', fontWeight: 800, fontSize: '15px',
+                padding: '15px 30px', borderRadius: '100px',
+                boxShadow: '0 0 30px rgba(255,214,0,0.35)',
+                textDecoration: 'none', cursor: 'pointer', marginTop: '10px',
+              }}
+            >
+              {product.ctaLabel || 'Commander le pack'}
+            </Link>
+          )}
         </div>
       </div>
     </motion.div>

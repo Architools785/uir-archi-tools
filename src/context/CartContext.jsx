@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react'
+import { isOutOfStock } from '../components/Products'
 
 const CartContext = createContext(null)
 const STORAGE_KEY = 'uir-archi-tools-cart'
@@ -80,6 +81,7 @@ export function CartProvider({ children }) {
   }, [appliedPromoCode])
 
   const addItem = useCallback((product, quantity) => {
+    if (isOutOfStock(product.slug)) return
     setItems(prev => {
       const existing = prev.find(i => i.slug === product.slug)
       if (existing) {
@@ -115,6 +117,11 @@ export function CartProvider({ children }) {
     setItems([])
     setAppliedPromoCode(null)
   }, [])
+
+  // Statut lu en direct depuis le catalogue (pas depuis le panier sauvegardé) :
+  // un produit passé en rupture après son ajout est détecté immédiatement.
+  const outOfStockItems = useMemo(() => items.filter(i => isOutOfStock(i.slug)), [items])
+  const hasOutOfStockItems = outOfStockItems.length > 0
 
   const totalCount = useMemo(() => items.reduce((sum, i) => sum + i.quantity, 0), [items])
   const totalPrice = useMemo(() => items.reduce((sum, i) => sum + i.price * i.quantity, 0), [items])
@@ -176,12 +183,14 @@ export function CartProvider({ children }) {
       fulfillmentMethod, setFulfillmentMethod, isPickup,
       appliedPromoCode, applyPromoCode, removePromoCode, isPromoActive, promoBelowMinimum,
       promoDiscount, promoMissingAmount, subtotalAfterDiscount,
+      outOfStockItems, hasOutOfStockItems,
     }),
     [items, addItem, removeItem, updateQuantity, clearCart, totalCount, totalPrice,
       shippingFee, orderTotal, isFreeShipping, amountToFreeShipping, freeShippingProgress,
       fulfillmentMethod, isPickup,
       appliedPromoCode, applyPromoCode, removePromoCode, isPromoActive, promoBelowMinimum,
-      promoDiscount, promoMissingAmount, subtotalAfterDiscount]
+      promoDiscount, promoMissingAmount, subtotalAfterDiscount,
+      outOfStockItems, hasOutOfStockItems]
   )
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>

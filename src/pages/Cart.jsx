@@ -4,6 +4,8 @@ import { useCart } from '../context/CartContext'
 import FreeShippingProgress from '../components/FreeShippingProgress'
 import FulfillmentSelector from '../components/FulfillmentSelector'
 import PromoCodeField from '../components/PromoCodeField'
+import OutOfStockBadge, { OutOfStockNotice } from '../components/OutOfStockBadge'
+import { isOutOfStock } from '../components/Products'
 
 const QUANTITIES = Array.from({ length: 20 }, (_, i) => i + 1)
 
@@ -22,6 +24,7 @@ const selectStyle = {
 function CartRow({ item }) {
   const { updateQuantity, removeItem } = useCart()
   const subtotal = item.price * item.quantity
+  const outOfStock = isOutOfStock(item.slug)
 
   return (
     <motion.div
@@ -41,6 +44,7 @@ function CartRow({ item }) {
             Paquet de {item.fixedQuantity}
           </div>
         )}
+        {outOfStock && <OutOfStockBadge size="sm" style={{ marginTop: '6px', boxShadow: 'none' }} />}
       </div>
 
       <div className="cart-row-price" style={{ fontFamily: 'Rubik, sans-serif', fontSize: '14px', color: 'rgba(255,255,255,0.6)', whiteSpace: 'nowrap' }}>
@@ -89,7 +93,10 @@ function CartRow({ item }) {
 export default function Cart() {
   const reduce = useReducedMotion()
   const navigate = useNavigate()
-  const { items, totalPrice, totalCount, shippingFee, orderTotal, isPickup, promoDiscount } = useCart()
+  const {
+    items, totalPrice, totalCount, shippingFee, orderTotal, isPickup, promoDiscount,
+    outOfStockItems, hasOutOfStockItems, removeItem,
+  } = useCart()
 
   return (
     <section style={{
@@ -315,23 +322,32 @@ export default function Cart() {
               </div>
             </motion.div>
 
+            {hasOutOfStockItems && (
+              <div style={{ marginTop: '24px' }}>
+                <OutOfStockNotice items={outOfStockItems} onRemove={removeItem} />
+              </div>
+            )}
+
             <motion.button
               type="button"
-              onClick={() => navigate('/finaliser-commande')}
+              onClick={() => { if (!hasOutOfStockItems) navigate('/finaliser-commande') }}
+              disabled={hasOutOfStockItems}
               initial={reduce ? false : { opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
-                background: '#FFD600', color: '#06071E',
+                background: hasOutOfStockItems ? 'rgba(255,255,255,0.08)' : '#FFD600',
+                color: hasOutOfStockItems ? 'rgba(255,255,255,0.45)' : '#06071E',
+                border: hasOutOfStockItems ? '1px solid rgba(255,255,255,0.12)' : 'none',
                 fontFamily: 'Outfit, sans-serif', fontWeight: 800, fontSize: '17px',
                 padding: '17px 30px', borderRadius: '100px',
-                boxShadow: '0 0 40px rgba(255,214,0,0.35)',
+                boxShadow: hasOutOfStockItems ? 'none' : '0 0 40px rgba(255,214,0,0.35)',
                 marginTop: '24px', width: '100%',
-                cursor: 'pointer',
+                cursor: hasOutOfStockItems ? 'not-allowed' : 'pointer',
               }}
-              whileHover={reduce ? {} : { scale: 1.02, boxShadow: '0 0 60px rgba(255,214,0,0.55)' }}
-              whileTap={reduce ? {} : { scale: 0.98 }}
+              whileHover={reduce || hasOutOfStockItems ? {} : { scale: 1.02, boxShadow: '0 0 60px rgba(255,214,0,0.55)' }}
+              whileTap={reduce || hasOutOfStockItems ? {} : { scale: 0.98 }}
             >
               Passer la commande →
             </motion.button>

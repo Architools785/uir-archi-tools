@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useParams, Navigate, Link } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
-import { PRODUCTS } from '../components/Products'
+import { PRODUCTS, isOutOfStock } from '../components/Products'
+import OutOfStockBadge from '../components/OutOfStockBadge'
 import { useCart } from '../context/CartContext'
 import Toast from '../components/Toast'
 
@@ -55,9 +56,11 @@ export default function Order() {
   if (!product) return <Navigate to="/shop" replace />
 
   const total = product.price * quantity
+  const outOfStock = isOutOfStock(product.slug)
 
   const handleAddToCart = (e) => {
     e.preventDefault()
+    if (outOfStock) return
     addItem(product, quantity)
     setShowToast(true)
   }
@@ -132,6 +135,11 @@ export default function Order() {
           }}>
             Fiche produit
           </span>
+          {outOfStock && (
+            <div style={{ marginBottom: '16px' }}>
+              <OutOfStockBadge />
+            </div>
+          )}
           <h1 style={{
             fontFamily: 'Outfit, sans-serif', fontWeight: 900,
             fontSize: 'clamp(28px, 4.5vw, 42px)', color: '#fff',
@@ -213,6 +221,21 @@ export default function Order() {
             display: 'flex', flexDirection: 'column', gap: '20px',
           }}
         >
+          {outOfStock && (
+            <div role="status" style={{
+              fontFamily: 'Rubik, sans-serif', fontSize: '14px', lineHeight: 1.6,
+              color: 'rgba(255,255,255,0.75)', background: 'rgba(255,107,107,0.1)',
+              border: '1px solid rgba(255,107,107,0.35)',
+              borderRadius: 'var(--radius-sm)', padding: '14px 18px',
+            }}>
+              <strong style={{ display: 'block', fontFamily: 'Outfit, sans-serif', fontSize: '16px', color: '#FF6B6B', marginBottom: '4px' }}>
+                Actuellement en rupture de stock
+              </strong>
+              Ce produit ne peut pas être commandé pour le moment. Suis-nous sur Instagram pour savoir quand il revient.
+            </div>
+          )}
+
+          <fieldset disabled={outOfStock} style={{ border: 'none', padding: 0, margin: 0, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '20px', opacity: outOfStock ? 0.5 : 1 }}>
           <Field label={product.fixedQuantity ? 'Nombre de paquets' : 'Quantité'}>
             {product.fixedQuantity ? (
               <>
@@ -269,23 +292,27 @@ export default function Order() {
               {total} MAD
             </span>
           </div>
+          </fieldset>
 
           <motion.button
             type="submit"
+            disabled={outOfStock}
+            aria-disabled={outOfStock}
             style={{
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
-              background: '#FFD600', color: '#06071E',
+              background: outOfStock ? 'rgba(255,255,255,0.08)' : '#FFD600',
+              color: outOfStock ? 'rgba(255,255,255,0.45)' : '#06071E',
+              border: outOfStock ? '1px solid rgba(255,255,255,0.12)' : 'none',
               fontFamily: 'Outfit, sans-serif', fontWeight: 800, fontSize: '17px',
               padding: '17px 30px', borderRadius: '100px',
-              boxShadow: '0 0 40px rgba(255,214,0,0.35)',
+              boxShadow: outOfStock ? 'none' : '0 0 40px rgba(255,214,0,0.35)',
               marginTop: '8px', width: '100%',
-              cursor: 'pointer',
+              cursor: outOfStock ? 'not-allowed' : 'pointer',
             }}
-            whileHover={reduce ? {} : { scale: 1.03, boxShadow: '0 0 60px rgba(255,214,0,0.55)' }}
-            whileTap={reduce ? {} : { scale: 0.97 }}
+            whileHover={reduce || outOfStock ? {} : { scale: 1.03, boxShadow: '0 0 60px rgba(255,214,0,0.55)' }}
+            whileTap={reduce || outOfStock ? {} : { scale: 0.97 }}
           >
-            <CartIcon />
-            {product.ctaLabel || 'Ajouter au panier'}
+            {outOfStock ? 'Indisponible' : <><CartIcon />{product.ctaLabel || 'Ajouter au panier'}</>}
           </motion.button>
 
           <Link

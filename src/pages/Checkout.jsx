@@ -5,6 +5,8 @@ import { useCart } from '../context/CartContext'
 import FreeShippingProgress from '../components/FreeShippingProgress'
 import FulfillmentSelector from '../components/FulfillmentSelector'
 import PromoCodeField from '../components/PromoCodeField'
+import OutOfStockBadge, { OutOfStockNotice } from '../components/OutOfStockBadge'
+import { isOutOfStock } from '../components/Products'
 
 const fieldStyle = {
   width: '100%',
@@ -49,6 +51,7 @@ export default function Checkout() {
   const {
     items, totalPrice, totalCount, shippingFee, orderTotal, clearCart, isPickup,
     appliedPromoCode, isPromoActive, promoDiscount,
+    outOfStockItems, hasOutOfStockItems, removeItem,
   } = useCart()
 
   const [fullName, setFullName] = useState('')
@@ -63,6 +66,7 @@ export default function Checkout() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (hasOutOfStockItems) return
     setSubmitError('')
     setIsSubmitting(true)
 
@@ -217,6 +221,7 @@ export default function Checkout() {
                 <div style={{ fontFamily: 'Outfit, sans-serif', fontWeight: 700, fontSize: '14px', color: '#fff' }}>
                   {item.name}
                 </div>
+                {isOutOfStock(item.slug) && <OutOfStockBadge size="sm" style={{ marginTop: '4px', boxShadow: 'none' }} />}
                 <div style={{ fontFamily: 'Rubik, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginTop: '2px' }}>
                   {item.fixedQuantity
                     ? `${item.quantity} paquet${item.quantity > 1 ? 's' : ''} de ${item.fixedQuantity}`
@@ -361,6 +366,8 @@ export default function Checkout() {
             />
           </Field>
 
+          {hasOutOfStockItems && <OutOfStockNotice items={outOfStockItems} onRemove={removeItem} />}
+
           {submitError && (
             <p style={{
               fontFamily: 'Rubik, sans-serif', fontSize: '14px', lineHeight: 1.6,
@@ -374,21 +381,23 @@ export default function Checkout() {
 
           <motion.button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || hasOutOfStockItems}
             style={{
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
-              background: '#FFD600', color: '#06071E',
+              background: hasOutOfStockItems ? 'rgba(255,255,255,0.08)' : '#FFD600',
+              color: hasOutOfStockItems ? 'rgba(255,255,255,0.45)' : '#06071E',
+              border: hasOutOfStockItems ? '1px solid rgba(255,255,255,0.12)' : 'none',
               fontFamily: 'Outfit, sans-serif', fontWeight: 800, fontSize: '17px',
               padding: '17px 30px', borderRadius: '100px',
-              boxShadow: '0 0 40px rgba(255,214,0,0.35)',
+              boxShadow: hasOutOfStockItems ? 'none' : '0 0 40px rgba(255,214,0,0.35)',
               marginTop: '8px', width: '100%',
               opacity: isSubmitting ? 0.7 : 1,
-              cursor: isSubmitting ? 'not-allowed' : 'pointer',
+              cursor: isSubmitting || hasOutOfStockItems ? 'not-allowed' : 'pointer',
             }}
-            whileHover={reduce || isSubmitting ? {} : { scale: 1.03, boxShadow: '0 0 60px rgba(255,214,0,0.55)' }}
-            whileTap={reduce || isSubmitting ? {} : { scale: 0.97 }}
+            whileHover={reduce || isSubmitting || hasOutOfStockItems ? {} : { scale: 1.03, boxShadow: '0 0 60px rgba(255,214,0,0.55)' }}
+            whileTap={reduce || isSubmitting || hasOutOfStockItems ? {} : { scale: 0.97 }}
           >
-            {isSubmitting ? 'Envoi en cours...' : 'Confirmer la commande'}
+            {isSubmitting ? 'Envoi en cours...' : hasOutOfStockItems ? 'Retire les produits en rupture' : 'Confirmer la commande'}
           </motion.button>
         </motion.form>
       </div>

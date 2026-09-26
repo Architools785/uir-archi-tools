@@ -3,8 +3,23 @@ import { motion, useReducedMotion, useMotionValue, useSpring, useTransform, useM
 import { Link } from 'react-router-dom'
 import ShippingBanner from './ShippingBanner'
 import FeaturedPack from './FeaturedPack'
+import OutOfStockBadge from './OutOfStockBadge'
 
-export const PRODUCTS = [
+// ─── Gestion du stock ───
+// Seul endroit à modifier : ajoute le slug d'un produit ici pour le mettre en
+// rupture, retire-le pour le remettre en stock. Tout le reste (badge, bouton
+// désactivé, fiche produit, blocage du panier) s'adapte automatiquement.
+export const OUT_OF_STOCK_SLUGS = [
+  'pack-debutant-archi',
+  'uhu',
+  'papier-a3',
+  'porte-mine-5mm',
+  'porte-mine-7mm',
+  'trace-lettres-petit',
+  'trace-lettres-grand',
+]
+
+const CATALOG = [
   { slug: 'recharge-porte-mine-7mm', name: 'Recharge porte-mine 7mm', price: 10, tag: 'Mine renforcée',       gradient: 'linear-gradient(135deg,#1F2937,#4B5563)', image: '/images/recharge-porte-mine-7mm.png', imageFit: 'cover' },
   { slug: 'recharge-porte-mine-5mm', name: 'Recharge porte-mine 5mm', price: 10, tag: 'Mine fine précise',     gradient: 'linear-gradient(135deg,#111827,#374151)', image: '/images/recharge-porte-mine-5mm.png', imageFit: 'cover' },
   { slug: 'porte-gomme', name: 'Porte gomme',                          price: 20, tag: 'Sans poussière',        gradient: 'linear-gradient(135deg,#78350F,#F59E0B)', image: '/images/porte-gomme.png', imageFit: 'cover' },
@@ -47,6 +62,12 @@ export const PRODUCTS = [
     unitLabel: 'pack',
   },
 ]
+
+export const PRODUCTS = CATALOG.map(p => ({ ...p, outOfStock: OUT_OF_STOCK_SLUGS.includes(p.slug) }))
+
+export function isOutOfStock(slug) {
+  return Boolean(PRODUCTS.find(p => p.slug === slug)?.outOfStock)
+}
 
 function TiltCard({ product, index }) {
   const reduce = useReducedMotion()
@@ -134,8 +155,13 @@ function TiltCard({ product, index }) {
                 objectFit: product.imageFit || 'contain',
                 objectPosition: product.imagePosition || 'center',
                 zIndex: 0,
+                filter: product.outOfStock ? 'grayscale(0.85) brightness(0.6)' : 'none',
               }}
             />
+          )}
+
+          {product.outOfStock && (
+            <OutOfStockBadge style={{ position: 'absolute', top: '12px', left: '12px', zIndex: 4 }} />
           )}
 
           {/* Shimmer sweep — reacts to parent hover variant */}
@@ -217,23 +243,40 @@ function TiltCard({ product, index }) {
             }}
             style={{ marginTop: '14px', fontSize: '12px', fontFamily: 'Rubik, sans-serif', display: 'flex', alignItems: 'center', gap: '5px' }}
           >
-            <span>→</span> Dispo en story
+            <span>→</span> {product.outOfStock ? 'Bientôt de retour' : 'Dispo en story'}
           </motion.div>
 
-          <Link
-            to={`/commander/${product.slug}`}
-            onClick={e => e.stopPropagation()}
-            style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              marginTop: '14px',
-              background: '#FFD600', color: '#06071E',
-              fontFamily: 'Outfit, sans-serif', fontWeight: 800, fontSize: '13px',
-              padding: '11px 16px', borderRadius: '100px',
-              textDecoration: 'none', cursor: 'pointer',
-            }}
-          >
-            Commander
-          </Link>
+          {product.outOfStock ? (
+            <span
+              aria-disabled="true"
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                marginTop: '14px',
+                background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.45)',
+                border: '1px solid rgba(255,255,255,0.12)',
+                fontFamily: 'Outfit, sans-serif', fontWeight: 800, fontSize: '13px',
+                padding: '10px 16px', borderRadius: '100px',
+                cursor: 'not-allowed',
+              }}
+            >
+              Indisponible
+            </span>
+          ) : (
+            <Link
+              to={`/commander/${product.slug}`}
+              onClick={e => e.stopPropagation()}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                marginTop: '14px',
+                background: '#FFD600', color: '#06071E',
+                fontFamily: 'Outfit, sans-serif', fontWeight: 800, fontSize: '13px',
+                padding: '11px 16px', borderRadius: '100px',
+                textDecoration: 'none', cursor: 'pointer',
+              }}
+            >
+              Commander
+            </Link>
+          )}
         </div>
       </motion.div>
     </motion.div>
