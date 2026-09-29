@@ -11,10 +11,7 @@ import OutOfStockBadge from './OutOfStockBadge'
 // désactivé, fiche produit, blocage du panier) s'adapte automatiquement.
 export const OUT_OF_STOCK_SLUGS = [
   'pack-debutant-archi',
-  'uhu',
   'papier-a3',
-  'porte-mine-5mm',
-  'porte-mine-7mm',
   'trace-lettres-petit',
   'trace-lettres-grand',
   'carton-plume-5mm',
