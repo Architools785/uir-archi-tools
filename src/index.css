@@ -94,9 +94,3 @@ button {
   .cart-row-qty { grid-area: qty; }
   .cart-row-subtotal { grid-area: subtotal; text-align: left !important; }
 }
-
-@media (max-width: 720px) {
-  .featured-pack {
-    grid-template-columns: 1fr !important;
-  }
-}

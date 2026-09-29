@@ -1,5 +1,6 @@
 import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion'
 import { useRef } from 'react'
+import OrdersCounter from './OrdersCounter'
 
 const SHAPES = [
   {
@@ -196,6 +197,8 @@ export default function Hero() {
         >
           Cartons plume, papiers, critériums, gommes électriques et plus — commandés en 1 message, livrés directement sur ton campus.
         </motion.p>
+
+        <OrdersCounter delay={0.95} />
       </motion.div>
 
       {/* Scroll indicator */}

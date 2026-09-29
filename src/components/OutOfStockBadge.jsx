@@ -1,5 +1,5 @@
-// Badge "Rupture de stock" réutilisé sur les cartes, le pack mis en avant,
-// la fiche produit et le panier. Rouge (couleur d'erreur du site) sur fond
+// Badge "Rupture de stock" réutilisé sur les cartes, la fiche produit et
+// le panier. Rouge (couleur d'erreur du site) sur fond
 // bleu marine, même typographie que les autres badges.
 import { cartItemKey, cartItemName } from '../context/CartContext'
 export default function OutOfStockBadge({ size = 'md', style }) {

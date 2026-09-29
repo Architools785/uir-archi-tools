@@ -2,7 +2,6 @@ import { useState, useRef } from 'react'
 import { motion, useReducedMotion, useMotionValue, useSpring, useTransform, useMotionTemplate, useInView } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import ShippingBanner from './ShippingBanner'
-import FeaturedPack from './FeaturedPack'
 import OutOfStockBadge from './OutOfStockBadge'
 
 // ─── Gestion du stock ───
@@ -10,7 +9,6 @@ import OutOfStockBadge from './OutOfStockBadge'
 // rupture, retire-le pour le remettre en stock. Tout le reste (badge, bouton
 // désactivé, fiche produit, blocage du panier) s'adapte automatiquement.
 export const OUT_OF_STOCK_SLUGS = [
-  'pack-debutant-archi',
   'papier-a3',
   'trace-lettres-petit',
   'trace-lettres-grand',
@@ -45,23 +43,6 @@ const CATALOG = [
     retail: { price: 3.5, unitLabel: 'feuille', minQuantity: 4, maxQuantity: 20 } },
   { slug: 'carnet-de-croquis-a3', name: 'Carnet de Croquis A3', price: 210, tag: 'Grand format', gradient: 'linear-gradient(135deg,#7C2D12,#EA580C)', image: '/images/Carnet%20de%20Croquis%20A3.png', imageFit: 'cover' },
   { slug: 'carnet-de-croquis-a4', name: 'Carnet de Croquis A4', price: 110, tag: 'Format nomade', gradient: 'linear-gradient(135deg,#581C87,#A855F7)', image: '/images/Carnet%20de%20Croquis%20A4.png', imageFit: 'cover' },
-  {
-    slug: 'pack-debutant-archi',
-    name: '📦 Pack Débutant Archi',
-    subtitle: "Tout ce qu'il te faut pour démarrer l'année sereinement 🎓",
-    contentDescription: "2 cartons plume 5mm, 1 critérium 5mm, 1 critérium 7mm, 1 porte-gomme, 4 raisins, 1 UHU, 1 paquet A3 (10 feuilles), 1 feutre noir + 5 feuilles A4 offertes 🎁",
-    price: 269,
-    originalPrice: 295,
-    tag: 'Offre spéciale',
-    gradient: 'linear-gradient(135deg,#7A5C00,#FFD600)',
-    image: '/images/pack-debutant-archi.png',
-    imageFit: 'cover',
-    featured: true,
-    alwaysFreeShipping: true,
-    promoExcluded: true, // déjà en promo (prix réduit) : non cumulable avec un code promo
-    ctaLabel: 'Ajouter le pack au panier',
-    unitLabel: 'pack',
-  },
 ]
 
 export const PRODUCTS = CATALOG.map(p => ({ ...p, outOfStock: OUT_OF_STOCK_SLUGS.includes(p.slug) }))
@@ -347,8 +328,6 @@ export default function Products() {
 
   const q = normalize(query)
   const matches = q ? PRODUCTS.filter(p => normalize(p.name).includes(q)) : PRODUCTS
-  const featured = matches.find(p => p.featured)
-  const gridProducts = matches.filter(p => !p.featured)
 
   return (
     <section style={{
@@ -392,16 +371,14 @@ export default function Products() {
 
         <ShippingBanner />
 
-        {featured && <FeaturedPack product={featured} />}
-
         {/* Grid */}
-        {gridProducts.length > 0 && (
+        {matches.length > 0 && (
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))',
             gap: '22px',
           }}>
-            {gridProducts.map((p, i) => <TiltCard key={p.name} product={p} index={i} />)}
+            {matches.map((p, i) => <TiltCard key={p.name} product={p} index={i} />)}
           </div>
         )}
 

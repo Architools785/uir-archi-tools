@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react'
-import { isOutOfStock } from '../components/Products'
+import { PRODUCTS, isOutOfStock } from '../components/Products'
 
 const CartContext = createContext(null)
 const STORAGE_KEY = 'uir-archi-tools-cart'
@@ -13,7 +13,7 @@ export const FULFILLMENT_DELIVERY = 'delivery'
 export const FULFILLMENT_PICKUP = 'pickup'
 
 // Code promo unique : -15% sur le sous-total des produits à prix normal
-// (non cumulable avec un produit déjà en promo, ex. le Pack Débutant Archi),
+// (non cumulable avec un produit marqué `promoExcluded` dans le catalogue),
 // utilisable à partir de PROMO_MIN_SUBTOTAL DH d'achat.
 export const PROMO_CODE = 'AMINE15'
 export const PROMO_DISCOUNT_RATE = 0.15
@@ -45,7 +45,9 @@ function loadCart() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     const parsed = raw ? JSON.parse(raw) : []
-    return Array.isArray(parsed) ? parsed : []
+    // Un produit retiré du catalogue ne doit pas rester commandable depuis
+    // un panier sauvegardé avant sa suppression.
+    return Array.isArray(parsed) ? parsed.filter(i => PRODUCTS.some(p => p.slug === i.slug)) : []
   } catch {
     return []
   }
@@ -153,12 +155,12 @@ export function CartProvider({ children }) {
   const totalCount = useMemo(() => items.reduce((sum, i) => sum + i.quantity, 0), [items])
   const totalPrice = useMemo(() => items.reduce((sum, i) => sum + i.price * i.quantity, 0), [items])
 
-  // Le code promo ne se cumule pas avec un produit déjà en promo (ex. le
-  // Pack Débutant Archi) : il ne s'applique que sur le sous-total des
+  // Le code promo ne se cumule pas avec un produit déjà en promo
+  // (`promoExcluded`) : il ne s'applique que sur le sous-total des
   // produits vendus à prix normal. C'est l'option la plus simple à
   // implémenter et la plus claire pour le client : le reste de la commande
   // continue de bénéficier de sa propre réduction, sans bloquer tout le
-  // code promo si le pack traîne dans le panier.
+  // code promo si un produit en promo traîne dans le panier.
   const promoEligibleSubtotal = useMemo(
     () => items.reduce((sum, i) => sum + (i.promoExcluded ? 0 : i.price * i.quantity), 0),
     [items]

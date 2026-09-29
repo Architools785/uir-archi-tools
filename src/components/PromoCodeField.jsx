@@ -84,7 +84,7 @@ export default function PromoCodeField({ compact = false }) {
 
         {isPromoActive && hasPromoExcludedItem && (
           <p style={{ fontFamily: 'Rubik, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.5)', margin: 0 }}>
-            ℹ️ Le Pack Débutant Archi est déjà en promo, il n&apos;est pas concerné par ce code.
+            ℹ️ Les produits déjà en promo ne sont pas concernés par ce code.
           </p>
         )}
       </div>
