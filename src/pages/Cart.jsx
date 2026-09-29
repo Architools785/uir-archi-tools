@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
-import { useCart } from '../context/CartContext'
+import { useCart, cartItemKey, cartItemName } from '../context/CartContext'
 import FreeShippingProgress from '../components/FreeShippingProgress'
 import FulfillmentSelector from '../components/FulfillmentSelector'
 import PromoCodeField from '../components/PromoCodeField'
@@ -25,6 +25,14 @@ function CartRow({ item }) {
   const { updateQuantity, removeItem } = useCart()
   const subtotal = item.price * item.quantity
   const outOfStock = isOutOfStock(item.slug)
+  const key = cartItemKey(item)
+  const name = cartItemName(item)
+  const quantities = item.minQuantity || item.maxQuantity
+    ? Array.from(
+        { length: (item.maxQuantity || 20) - (item.minQuantity || 1) + 1 },
+        (_, i) => i + (item.minQuantity || 1)
+      )
+    : QUANTITIES
 
   return (
     <motion.div
@@ -37,7 +45,7 @@ function CartRow({ item }) {
     >
       <div className="cart-row-name">
         <div style={{ fontFamily: 'Outfit, sans-serif', fontWeight: 700, fontSize: '16px', color: '#fff' }}>
-          {item.name}
+          {name}
         </div>
         {item.fixedQuantity && (
           <div style={{ fontFamily: 'Rubik, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.45)', marginTop: '4px' }}>
@@ -53,14 +61,14 @@ function CartRow({ item }) {
 
       <select
         value={item.quantity}
-        onChange={e => updateQuantity(item.slug, Number(e.target.value))}
+        onChange={e => updateQuantity(key, Number(e.target.value))}
         style={selectStyle}
         className="cart-row-qty"
-        aria-label={`Quantité pour ${item.name}`}
+        aria-label={`Quantité pour ${name}`}
       >
-        {QUANTITIES.map(q => (
+        {quantities.map(q => (
           <option key={q} value={q} style={{ background: '#0B0C35', color: '#fff' }}>
-            {q}{item.fixedQuantity ? ` paquet${q > 1 ? 's' : ''}` : ''}
+            {q}{item.fixedQuantity ? ` paquet${q > 1 ? 's' : ''}` : item.showQuantityInName ? ` ${item.unitLabel}${q > 1 ? 's' : ''}` : ''}
           </option>
         ))}
       </select>
@@ -74,8 +82,8 @@ function CartRow({ item }) {
 
       <button
         type="button"
-        onClick={() => removeItem(item.slug)}
-        aria-label={`Retirer ${item.name} du panier`}
+        onClick={() => removeItem(key)}
+        aria-label={`Retirer ${name} du panier`}
         className="cart-row-remove"
         style={{
           display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
@@ -203,7 +211,7 @@ export default function Cart() {
                 padding: '8px 28px',
               }}
             >
-              {items.map(item => <CartRow key={item.slug} item={item} />)}
+              {items.map(item => <CartRow key={cartItemKey(item)} item={item} />)}
             </motion.div>
 
             <motion.div

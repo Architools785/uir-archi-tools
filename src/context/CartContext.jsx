@@ -19,6 +19,28 @@ export const PROMO_CODE = 'AMINE15'
 export const PROMO_DISCOUNT_RATE = 0.15
 export const PROMO_MIN_SUBTOTAL = 50
 
+// Identifiant d'une ligne du panier. Un même produit peut avoir plusieurs
+// lignes (ex. Carnet de Calque A3 au détail et en paquet) : chacune a sa
+// propre clé, le slug restant celui du produit (stock, fiche produit).
+// Les paniers sauvegardés avant l'ajout de `key` retombent sur le slug.
+export function cartItemKey(item) {
+  return item.key || item.slug
+}
+
+// Nom affiché dans le panier, le checkout et l'email de commande.
+// Ex. "Carnet de Calque A3 — au détail (6 feuilles)".
+export function cartItemName(item) {
+  if (!item.showQuantityInName) return item.name
+  const unit = item.unitLabel || 'unité'
+  return `${item.name} (${item.quantity} ${unit}${item.quantity > 1 ? 's' : ''})`
+}
+
+function clampQuantity(item, quantity) {
+  const min = item.minQuantity || 1
+  const max = item.maxQuantity || Infinity
+  return Math.min(max, Math.max(min, quantity))
+}
+
 function loadCart() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
@@ -82,16 +104,18 @@ export function CartProvider({ children }) {
 
   const addItem = useCallback((product, quantity) => {
     if (isOutOfStock(product.slug)) return
+    const key = product.cartKey || product.slug
     setItems(prev => {
-      const existing = prev.find(i => i.slug === product.slug)
+      const existing = prev.find(i => cartItemKey(i) === key)
       if (existing) {
         return prev.map(i =>
-          i.slug === product.slug ? { ...i, quantity: i.quantity + quantity } : i
+          cartItemKey(i) === key ? { ...i, quantity: clampQuantity(i, i.quantity + quantity) } : i
         )
       }
       return [
         ...prev,
         {
+          key,
           slug: product.slug,
           name: product.name,
           price: product.price,
@@ -100,17 +124,20 @@ export function CartProvider({ children }) {
           alwaysFreeShipping: product.alwaysFreeShipping || false,
           unitLabel: product.unitLabel || null,
           promoExcluded: product.promoExcluded || false,
+          minQuantity: product.minQuantity || null,
+          maxQuantity: product.maxQuantity || null,
+          showQuantityInName: product.showQuantityInName || false,
         },
       ]
     })
   }, [])
 
-  const removeItem = useCallback((slug) => {
-    setItems(prev => prev.filter(i => i.slug !== slug))
+  const removeItem = useCallback((key) => {
+    setItems(prev => prev.filter(i => cartItemKey(i) !== key))
   }, [])
 
-  const updateQuantity = useCallback((slug, quantity) => {
-    setItems(prev => prev.map(i => (i.slug === slug ? { ...i, quantity: Math.max(1, quantity) } : i)))
+  const updateQuantity = useCallback((key, quantity) => {
+    setItems(prev => prev.map(i => (cartItemKey(i) === key ? { ...i, quantity: clampQuantity(i, quantity) } : i)))
   }, [])
 
   const clearCart = useCallback(() => {

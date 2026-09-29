@@ -1,6 +1,7 @@
 // Badge "Rupture de stock" réutilisé sur les cartes, le pack mis en avant,
 // la fiche produit et le panier. Rouge (couleur d'erreur du site) sur fond
 // bleu marine, même typographie que les autres badges.
+import { cartItemKey, cartItemName } from '../context/CartContext'
 export default function OutOfStockBadge({ size = 'md', style }) {
   const small = size === 'sm'
   return (
@@ -38,12 +39,12 @@ export function OutOfStockNotice({ items, onRemove }) {
       Retire {items.length > 1 ? 'ces produits' : 'ce produit'} de ton panier pour pouvoir finaliser ta commande :
       <ul style={{ listStyle: 'none', marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
         {items.map(item => (
-          <li key={item.slug} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
-            <span style={{ fontFamily: 'Outfit, sans-serif', fontWeight: 700, color: '#fff' }}>{item.name}</span>
+          <li key={cartItemKey(item)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+            <span style={{ fontFamily: 'Outfit, sans-serif', fontWeight: 700, color: '#fff' }}>{cartItemName(item)}</span>
             {onRemove && (
               <button
                 type="button"
-                onClick={() => onRemove(item.slug)}
+                onClick={() => onRemove(cartItemKey(item))}
                 style={{
                   background: 'rgba(255,107,107,0.15)', border: '1px solid rgba(255,107,107,0.45)',
                   color: '#FF6B6B', fontFamily: 'Outfit, sans-serif', fontWeight: 700, fontSize: '12px',

@@ -8,6 +8,9 @@ import Toast from '../components/Toast'
 
 const QUANTITIES = Array.from({ length: 10 }, (_, i) => i + 1)
 
+const MODE_RETAIL = 'detail'
+const MODE_PACK = 'paquet'
+
 const fieldStyle = {
   width: '100%',
   background: 'rgba(255,255,255,0.05)',
@@ -44,6 +47,7 @@ export default function Order() {
   const product = PRODUCTS.find(p => p.slug === slug)
   const { addItem, totalCount } = useCart()
 
+  const [mode, setMode] = useState(MODE_PACK)
   const [quantity, setQuantity] = useState(1)
   const [showToast, setShowToast] = useState(false)
 
@@ -55,13 +59,38 @@ export default function Order() {
 
   if (!product) return <Navigate to="/shop" replace />
 
-  const total = product.price * quantity
+  // Produits vendus au paquet ET à l'unité (ex. Carnet de Calque A3) : chaque
+  // mode devient une ligne distincte du panier, avec son propre nom et prix.
+  const { retail } = product
+  const isRetail = Boolean(retail) && mode === MODE_RETAIL
+  const cartProduct = !retail ? product : isRetail
+    ? {
+        ...product,
+        cartKey: `${product.slug}--detail`,
+        name: `${product.name} — au détail`,
+        price: retail.price,
+        unitLabel: retail.unitLabel,
+        minQuantity: retail.minQuantity,
+        maxQuantity: retail.maxQuantity,
+        showQuantityInName: true,
+      }
+    : { ...product, cartKey: `${product.slug}--paquet`, name: `${product.name} — paquet`, unitLabel: 'paquet' }
+  const quantities = isRetail
+    ? Array.from({ length: retail.maxQuantity - retail.minQuantity + 1 }, (_, i) => i + retail.minQuantity)
+    : QUANTITIES
+
+  const total = cartProduct.price * quantity
   const outOfStock = isOutOfStock(product.slug)
+
+  const selectMode = (next) => {
+    setMode(next)
+    setQuantity(next === MODE_RETAIL ? retail.minQuantity : 1)
+  }
 
   const handleAddToCart = (e) => {
     e.preventDefault()
     if (outOfStock) return
-    addItem(product, quantity)
+    addItem(cartProduct, quantity)
     setShowToast(true)
   }
 
@@ -182,7 +211,7 @@ export default function Order() {
               color: '#06071E', background: '#FFD600',
               padding: '8px 20px', borderRadius: '100px',
             }}>
-              {product.price} MAD
+              {cartProduct.price} MAD{isRetail ? ` / ${retail.unitLabel}` : ''}
             </span>
             {product.originalPrice && (
               <span style={{
@@ -236,8 +265,62 @@ export default function Order() {
           )}
 
           <fieldset disabled={outOfStock} style={{ border: 'none', padding: 0, margin: 0, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '20px', opacity: outOfStock ? 0.5 : 1 }}>
-          <Field label={product.fixedQuantity ? 'Nombre de paquets' : 'Quantité'}>
-            {product.fixedQuantity ? (
+          {retail && (
+            <div role="radiogroup" aria-label="Mode d'achat" style={{
+              display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px',
+              background: 'rgba(255,255,255,0.05)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: '100px', padding: '5px',
+            }}>
+              {[
+                { value: MODE_RETAIL, label: 'Au détail', hint: `${retail.price} MAD / ${retail.unitLabel}` },
+                { value: MODE_PACK, label: 'Le paquet', hint: `${product.price} MAD le carnet` },
+              ].map(opt => {
+                const active = mode === opt.value
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    role="radio"
+                    aria-checked={active}
+                    onClick={() => selectMode(opt.value)}
+                    style={{
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px',
+                      background: active ? '#FFD600' : 'transparent',
+                      color: active ? '#06071E' : 'rgba(255,255,255,0.7)',
+                      border: 'none', borderRadius: '100px',
+                      padding: '10px 12px', cursor: 'pointer',
+                      transition: 'background 0.2s, color 0.2s',
+                    }}
+                  >
+                    <span style={{ fontFamily: 'Outfit, sans-serif', fontWeight: 800, fontSize: '15px' }}>{opt.label}</span>
+                    <span style={{ fontFamily: 'Rubik, sans-serif', fontSize: '11px', opacity: active ? 0.75 : 0.55 }}>{opt.hint}</span>
+                  </button>
+                )
+              })}
+            </div>
+          )}
+
+          <Field label={product.fixedQuantity ? 'Nombre de paquets' : isRetail ? 'Nombre de feuilles' : 'Quantité'}>
+            {isRetail ? (
+              <>
+                <select
+                  required value={quantity}
+                  onChange={e => setQuantity(Number(e.target.value))}
+                  onFocus={focusField} onBlur={blurField}
+                  style={{ ...fieldStyle, cursor: 'pointer' }}
+                >
+                  {quantities.map(q => (
+                    <option key={q} value={q} style={{ background: '#0B0C35', color: '#fff' }}>
+                      {q} {retail.unitLabel}s
+                    </option>
+                  ))}
+                </select>
+                <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.45)', marginTop: '4px', display: 'block' }}>
+                  Minimum {retail.minQuantity} {retail.unitLabel}s au détail
+                </span>
+              </>
+            ) : product.fixedQuantity ? (
               <>
                 <select
                   required value={quantity}

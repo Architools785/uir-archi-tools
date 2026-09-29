@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { useNavigate, Navigate, Link } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
-import { useCart } from '../context/CartContext'
+import { useCart, cartItemKey, cartItemName } from '../context/CartContext'
 import FreeShippingProgress from '../components/FreeShippingProgress'
 import FulfillmentSelector from '../components/FulfillmentSelector'
 import PromoCodeField from '../components/PromoCodeField'
@@ -41,8 +41,8 @@ function Field({ label, children }) {
 function itemLabel(item) {
   const subtotal = item.price * item.quantity
   return item.fixedQuantity
-    ? `${item.name} — ${item.quantity} paquet${item.quantity > 1 ? 's' : ''} de ${item.fixedQuantity} — ${subtotal} MAD`
-    : `${item.name} — ${item.quantity} x ${item.price} MAD = ${subtotal} MAD`
+    ? `${cartItemName(item)} — ${item.quantity} paquet${item.quantity > 1 ? 's' : ''} de ${item.fixedQuantity} — ${subtotal} MAD`
+    : `${cartItemName(item)} — ${item.quantity} x ${item.price} MAD = ${subtotal} MAD`
 }
 
 export default function Checkout() {
@@ -212,14 +212,14 @@ export default function Checkout() {
           }}
         >
           {items.map(item => (
-            <div key={item.slug} style={{
+            <div key={cartItemKey(item)} style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               gap: '12px', padding: '14px 0',
               borderBottom: '1px solid rgba(255,255,255,0.08)',
             }}>
               <div>
                 <div style={{ fontFamily: 'Outfit, sans-serif', fontWeight: 700, fontSize: '14px', color: '#fff' }}>
-                  {item.name}
+                  {cartItemName(item)}
                 </div>
                 {isOutOfStock(item.slug) && <OutOfStockBadge size="sm" style={{ marginTop: '4px', boxShadow: 'none' }} />}
                 <div style={{ fontFamily: 'Rubik, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginTop: '2px' }}>

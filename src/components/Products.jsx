@@ -17,6 +17,8 @@ export const OUT_OF_STOCK_SLUGS = [
   'porte-mine-7mm',
   'trace-lettres-petit',
   'trace-lettres-grand',
+  'carton-plume-5mm',
+  'regle-30cm-plastique',
 ]
 
 const CATALOG = [
@@ -41,7 +43,9 @@ const CATALOG = [
   { slug: 'scotch-tesa', name: 'Scotch Tesa', price: 35, tag: 'Fixation propre', gradient: 'linear-gradient(135deg,#B91C1C,#F87171)', image: '/images/Scotch%20Tesa.png', imageFit: 'cover' },
   { slug: 'trace-lettres-grand', name: 'Trace lettres (grand)', price: 15, tag: 'Lettres nettes', gradient: 'linear-gradient(135deg,#4C1D95,#A78BFA)', image: '/images/Trace%20lettres%20%28%20grand%20%29.png', imageFit: 'cover' },
   { slug: 'trace-lettres-petit', name: 'Trace lettres (petit)', price: 10, tag: 'Écriture précise', gradient: 'linear-gradient(135deg,#3730A3,#818CF8)', image: '/images/Trace%20Lettres%20%28%20petit%20%29.png', imageFit: 'cover' },
-  { slug: 'carnet-de-calque-a3', name: 'Carnet de Calque A3', price: 100, tag: 'Transparence idéale', gradient: 'linear-gradient(135deg,#134E4A,#14B8A6)', image: '/images/Carnet%20de%20Calque%20A3.png', imageFit: 'cover' },
+  { slug: 'carnet-de-calque-a3', name: 'Carnet de Calque A3', price: 100, tag: 'Transparence idéale', gradient: 'linear-gradient(135deg,#134E4A,#14B8A6)', image: '/images/Carnet%20de%20Calque%20A3.png', imageFit: 'cover',
+    // Vendu aussi à la feuille : la fiche produit propose "Au détail" / "Le paquet".
+    retail: { price: 3.5, unitLabel: 'feuille', minQuantity: 4, maxQuantity: 20 } },
   { slug: 'carnet-de-croquis-a3', name: 'Carnet de Croquis A3', price: 210, tag: 'Grand format', gradient: 'linear-gradient(135deg,#7C2D12,#EA580C)', image: '/images/Carnet%20de%20Croquis%20A3.png', imageFit: 'cover' },
   { slug: 'carnet-de-croquis-a4', name: 'Carnet de Croquis A4', price: 110, tag: 'Format nomade', gradient: 'linear-gradient(135deg,#581C87,#A855F7)', image: '/images/Carnet%20de%20Croquis%20A4.png', imageFit: 'cover' },
   {
@@ -67,6 +71,63 @@ export const PRODUCTS = CATALOG.map(p => ({ ...p, outOfStock: OUT_OF_STOCK_SLUGS
 
 export function isOutOfStock(slug) {
   return Boolean(PRODUCTS.find(p => p.slug === slug)?.outOfStock)
+}
+
+// Minuscules + suppression des accents : "criterium" trouve "Critérium".
+function normalize(str) {
+  return str.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
+}
+
+function SearchBar({ value, onChange }) {
+  const [focused, setFocused] = useState(false)
+
+  return (
+    <div style={{ position: 'relative', maxWidth: '520px', margin: '28px auto 0' }}>
+      <span aria-hidden="true" style={{
+        position: 'absolute', left: '20px', top: '50%', transform: 'translateY(-50%)',
+        display: 'flex', color: focused ? '#FFD600' : 'rgba(255,255,255,0.45)',
+        pointerEvents: 'none', transition: 'color 0.2s',
+      }}>
+        <SearchIcon />
+      </span>
+      <input
+        type="text"
+        role="searchbox"
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        onKeyDown={e => { if (e.key === 'Escape') onChange('') }}
+        placeholder="Rechercher un produit..."
+        aria-label="Rechercher un produit"
+        style={{
+          width: '100%', boxSizing: 'border-box',
+          background: 'rgba(255,255,255,0.06)',
+          border: `1px solid ${focused ? 'rgba(255,214,0,0.6)' : 'rgba(255,255,255,0.14)'}`,
+          boxShadow: focused ? '0 0 0 4px rgba(255,214,0,0.12)' : 'none',
+          color: '#fff', fontFamily: 'Rubik, sans-serif', fontSize: '15px',
+          padding: '15px 52px 15px 52px', borderRadius: '100px',
+          outline: 'none', transition: 'border-color 0.2s, box-shadow 0.2s',
+        }}
+      />
+      {value && (
+        <button
+          type="button"
+          onClick={() => onChange('')}
+          aria-label="Effacer la recherche"
+          style={{
+            position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)',
+            width: '32px', height: '32px', borderRadius: '50%',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'rgba(255,255,255,0.1)', color: '#fff',
+            border: 'none', cursor: 'pointer', padding: 0,
+          }}
+        >
+          <ClearIcon />
+        </button>
+      )}
+    </div>
+  )
 }
 
 function TiltCard({ product, index }) {
@@ -285,6 +346,12 @@ function TiltCard({ product, index }) {
 
 export default function Products() {
   const reduce = useReducedMotion()
+  const [query, setQuery] = useState('')
+
+  const q = normalize(query)
+  const matches = q ? PRODUCTS.filter(p => normalize(p.name).includes(q)) : PRODUCTS
+  const featured = matches.find(p => p.featured)
+  const gridProducts = matches.filter(p => !p.featured)
 
   return (
     <section style={{
@@ -323,20 +390,49 @@ export default function Products() {
           }}>
             Tout ce qu&apos;il te faut
           </h2>
+          <SearchBar value={query} onChange={setQuery} />
         </motion.div>
 
         <ShippingBanner />
 
-        <FeaturedPack product={PRODUCTS.find(p => p.featured)} />
+        {featured && <FeaturedPack product={featured} />}
 
         {/* Grid */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))',
-          gap: '22px',
-        }}>
-          {PRODUCTS.filter(p => !p.featured).map((p, i) => <TiltCard key={p.name} product={p} index={i} />)}
-        </div>
+        {gridProducts.length > 0 && (
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))',
+            gap: '22px',
+          }}>
+            {gridProducts.map((p, i) => <TiltCard key={p.name} product={p} index={i} />)}
+          </div>
+        )}
+
+        {matches.length === 0 && (
+          <div role="status" style={{
+            textAlign: 'center', padding: '56px 24px',
+            background: 'rgba(255,255,255,0.04)',
+            border: '1px dashed rgba(255,255,255,0.14)',
+            borderRadius: 'var(--radius)',
+          }}>
+            <p style={{ fontFamily: 'Outfit, sans-serif', fontWeight: 700, fontSize: '18px', color: '#fff', margin: 0 }}>
+              Aucun produit trouvé pour &laquo;&nbsp;<span style={{ color: '#FFD600' }}>{query.trim()}</span>&nbsp;&raquo;
+            </p>
+            <button
+              type="button"
+              onClick={() => setQuery('')}
+              style={{
+                marginTop: '18px',
+                background: '#FFD600', color: '#06071E',
+                fontFamily: 'Outfit, sans-serif', fontWeight: 800, fontSize: '13px',
+                padding: '10px 22px', borderRadius: '100px',
+                border: 'none', cursor: 'pointer',
+              }}
+            >
+              Voir tout le catalogue
+            </button>
+          </div>
+        )}
 
         {/* CTA */}
         <motion.div
@@ -375,6 +471,14 @@ export default function Products() {
 }
 
 /* ─── Icons ─── */
+
+function SearchIcon() {
+  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
+}
+
+function ClearIcon() {
+  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+}
 
 function IGIcon() {
   return <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
