@@ -9,11 +9,7 @@ import OutOfStockBadge from './OutOfStockBadge'
 // rupture, retire-le pour le remettre en stock. Tout le reste (badge, bouton
 // désactivé, fiche produit, blocage du panier) s'adapte automatiquement.
 export const OUT_OF_STOCK_SLUGS = [
-  'papier-a3',
   'trace-lettres-petit',
-  'trace-lettres-grand',
-  'carton-plume-5mm',
-  'regle-30cm-plastique',
 ]
 
 const CATALOG = [
