@@ -94,3 +94,133 @@ button {
   .cart-row-qty { grid-area: qty; }
   .cart-row-subtotal { grid-area: subtotal; text-align: left !important; }
 }
+
+/* ─── Page hub /boutique ─── */
+.hub-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+}
+
+.hub-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border-radius: 24px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #312e81, #25226a);
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.1), 0 18px 44px rgba(0,0,0,0.35);
+  transition: transform 0.35s cubic-bezier(.2,.8,.2,1), box-shadow 0.35s ease;
+}
+
+.hub-cover {
+  aspect-ratio: 3 / 2;
+  overflow: hidden;
+}
+
+.hub-cover svg {
+  transition: transform 0.6s cubic-bezier(.2,.8,.2,1);
+}
+
+.hub-body {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 24px 28px 28px;
+}
+
+.hub-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  color: rgba(255,255,255,0.6);
+  transition: color 0.25s ease;
+}
+
+.hub-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,214,0,0.45);
+  color: #FFD600;
+  font-size: 18px;
+  transition: transform 0.3s ease, background 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.hub-card:hover,
+.hub-card:focus-visible {
+  transform: scale(1.025);
+  box-shadow:
+    0 0 0 1.5px rgba(255,214,0,0.75),
+    0 0 46px rgba(255,214,0,0.32),
+    0 26px 60px rgba(0,0,0,0.45);
+}
+
+.hub-card:hover .hub-cover svg,
+.hub-card:focus-visible .hub-cover svg {
+  transform: scale(1.06);
+}
+
+.hub-card:hover .hub-cta,
+.hub-card:focus-visible .hub-cta {
+  color: #FFD600;
+}
+
+.hub-card:hover .hub-arrow,
+.hub-card:focus-visible .hub-arrow {
+  transform: translateX(5px);
+  background: #FFD600;
+  color: #06071E;
+  box-shadow: 0 0 24px rgba(255,214,0,0.55);
+}
+
+@media (max-width: 760px) {
+  .hub-grid {
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+  .hub-body {
+    padding: 20px 22px 24px;
+  }
+  .hub-cta-label {
+    display: none;
+  }
+}
+
+/* ─── Cartes de la page /packs ─── */
+.pack-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: linear-gradient(160deg, #1e1b4b, #312e81);
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.08);
+  transition: transform 0.3s cubic-bezier(.2,.8,.2,1), box-shadow 0.3s ease;
+}
+
+.pack-card-image {
+  transition: transform 0.6s cubic-bezier(.2,.8,.2,1);
+}
+
+.pack-card:hover,
+.pack-card:focus-visible {
+  transform: translateY(-4px);
+  box-shadow:
+    0 0 0 1px rgba(255,214,0,0.55),
+    0 0 36px rgba(255,214,0,0.2),
+    0 24px 60px rgba(0,0,0,0.45);
+}
+
+.pack-card:hover .pack-card-image,
+.pack-card:focus-visible .pack-card-image {
+  transform: scale(1.05);
+}

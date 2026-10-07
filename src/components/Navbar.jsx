@@ -124,7 +124,7 @@ export default function Navbar() {
         </MotionLink>
 
         <MotionLink
-          to="/shop"
+          to="/boutique"
           style={{
             display: 'inline-flex', alignItems: 'center', gap: '8px',
             background: '#FFD600', color: '#06071E',

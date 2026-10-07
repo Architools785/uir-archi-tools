@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react'
 import { PRODUCTS, isOutOfStock } from '../components/Products'
+import { getPack, packContents, isPackSelectionOutOfStock } from '../data/packs'
 
 const CartContext = createContext(null)
 const STORAGE_KEY = 'uir-archi-tools-cart'
@@ -35,6 +36,21 @@ export function cartItemName(item) {
   return `${item.name} (${item.quantity} ${unit}${item.quantity > 1 ? 's' : ''})`
 }
 
+// Un pack est une seule ligne du panier (`isPack`), au prix du pack. Son
+// contenu est relu depuis la liste des packs, avec l'option choisie
+// (ex. épaisseur du carton plume) : [{ slug, name, quantity }] pour UN pack.
+export function cartItemContents(item) {
+  if (!item.isPack) return []
+  const pack = getPack(item.slug)
+  return pack ? packContents(pack, item.packOption) : []
+}
+
+// Rupture d'une ligne du panier : celle du produit, ou pour un pack celle
+// d'un de ses composants (dont l'épaisseur choisie).
+export function isCartItemOutOfStock(item) {
+  return item.isPack ? isPackSelectionOutOfStock(item.slug, item.packOption) : isOutOfStock(item.slug)
+}
+
 function clampQuantity(item, quantity) {
   const min = item.minQuantity || 1
   const max = item.maxQuantity || Infinity
@@ -47,7 +63,9 @@ function loadCart() {
     const parsed = raw ? JSON.parse(raw) : []
     // Un produit retiré du catalogue ne doit pas rester commandable depuis
     // un panier sauvegardé avant sa suppression.
-    return Array.isArray(parsed) ? parsed.filter(i => PRODUCTS.some(p => p.slug === i.slug)) : []
+    return Array.isArray(parsed)
+      ? parsed.filter(i => (i.isPack ? Boolean(getPack(i.slug)) : PRODUCTS.some(p => p.slug === i.slug)))
+      : []
   } catch {
     return []
   }
@@ -105,7 +123,7 @@ export function CartProvider({ children }) {
   }, [appliedPromoCode])
 
   const addItem = useCallback((product, quantity) => {
-    if (isOutOfStock(product.slug)) return
+    if (isCartItemOutOfStock(product)) return
     const key = product.cartKey || product.slug
     setItems(prev => {
       const existing = prev.find(i => cartItemKey(i) === key)
@@ -129,6 +147,8 @@ export function CartProvider({ children }) {
           minQuantity: product.minQuantity || null,
           maxQuantity: product.maxQuantity || null,
           showQuantityInName: product.showQuantityInName || false,
+          isPack: product.isPack || false,
+          packOption: product.packOption || null,
         },
       ]
     })
@@ -149,7 +169,7 @@ export function CartProvider({ children }) {
 
   // Statut lu en direct depuis le catalogue (pas depuis le panier sauvegardé) :
   // un produit passé en rupture après son ajout est détecté immédiatement.
-  const outOfStockItems = useMemo(() => items.filter(i => isOutOfStock(i.slug)), [items])
+  const outOfStockItems = useMemo(() => items.filter(isCartItemOutOfStock), [items])
   const hasOutOfStockItems = outOfStockItems.length > 0
 
   const totalCount = useMemo(() => items.reduce((sum, i) => sum + i.quantity, 0), [items])

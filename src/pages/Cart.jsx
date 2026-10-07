@@ -1,11 +1,10 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
-import { useCart, cartItemKey, cartItemName } from '../context/CartContext'
+import { useCart, cartItemKey, cartItemName, cartItemContents, isCartItemOutOfStock } from '../context/CartContext'
 import FreeShippingProgress from '../components/FreeShippingProgress'
 import FulfillmentSelector from '../components/FulfillmentSelector'
 import PromoCodeField from '../components/PromoCodeField'
 import OutOfStockBadge, { OutOfStockNotice } from '../components/OutOfStockBadge'
-import { isOutOfStock } from '../components/Products'
 
 const QUANTITIES = Array.from({ length: 20 }, (_, i) => i + 1)
 
@@ -24,7 +23,8 @@ const selectStyle = {
 function CartRow({ item }) {
   const { updateQuantity, removeItem } = useCart()
   const subtotal = item.price * item.quantity
-  const outOfStock = isOutOfStock(item.slug)
+  const outOfStock = isCartItemOutOfStock(item)
+  const contents = cartItemContents(item)
   const key = cartItemKey(item)
   const name = cartItemName(item)
   const quantities = item.minQuantity || item.maxQuantity
@@ -50,6 +50,11 @@ function CartRow({ item }) {
         {item.fixedQuantity && (
           <div style={{ fontFamily: 'Rubik, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.45)', marginTop: '4px' }}>
             Paquet de {item.fixedQuantity}
+          </div>
+        )}
+        {contents.length > 0 && (
+          <div style={{ fontFamily: 'Rubik, sans-serif', fontSize: '12px', lineHeight: 1.6, color: 'rgba(255,255,255,0.55)', marginTop: '4px' }}>
+            Contenu du pack : {contents.map(c => `${c.quantity} × ${c.name}`).join(' · ')}
           </div>
         )}
         {outOfStock && <OutOfStockBadge size="sm" style={{ marginTop: '6px', boxShadow: 'none' }} />}

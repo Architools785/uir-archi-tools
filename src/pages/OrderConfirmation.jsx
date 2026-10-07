@@ -1,10 +1,10 @@
 import { Link, useLocation, Navigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 
-function RecapRow({ label, value, accent }) {
+function RecapRow({ label, value, accent, detail }) {
   return (
     <div style={{
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px',
       padding: '14px 0',
       borderBottom: '1px solid rgba(255,255,255,0.08)',
     }}>
@@ -13,11 +13,21 @@ function RecapRow({ label, value, accent }) {
         color: 'rgba(255,255,255,0.55)', letterSpacing: '0.3px', textTransform: 'uppercase',
       }}>
         {label}
+        {detail && (
+          <span style={{
+            display: 'block', marginTop: '4px',
+            fontFamily: 'Rubik, sans-serif', fontWeight: 400, fontSize: '12px',
+            color: 'rgba(255,255,255,0.45)', letterSpacing: 0, textTransform: 'none',
+          }}>
+            {detail}
+          </span>
+        )}
       </span>
       <span style={{
         fontFamily: 'Outfit, sans-serif', fontWeight: accent ? 900 : 700,
         fontSize: accent ? '22px' : '16px',
         color: accent ? '#FFD600' : '#fff',
+        textAlign: 'right', whiteSpace: detail ? 'nowrap' : 'normal',
       }}>
         {value}
       </span>
@@ -114,6 +124,7 @@ export default function OrderConfirmation() {
             <RecapRow
               key={idx}
               label={item.name}
+              detail={item.contents ? `Contenu du pack : ${item.contents}` : null}
               value={item.fixedQuantity
                 ? `${item.quantity} paquet${item.quantity > 1 ? 's' : ''} de ${item.fixedQuantity} — ${item.subtotal} MAD`
                 : `${item.quantity} ${item.unitLabel || 'unité'}${item.quantity > 1 ? 's' : ''} — ${item.subtotal} MAD`}

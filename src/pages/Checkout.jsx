@@ -1,12 +1,11 @@
 import { useRef, useState } from 'react'
 import { useNavigate, Navigate, Link } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
-import { useCart, cartItemKey, cartItemName } from '../context/CartContext'
+import { useCart, cartItemKey, cartItemName, cartItemContents, isCartItemOutOfStock } from '../context/CartContext'
 import FreeShippingProgress from '../components/FreeShippingProgress'
 import FulfillmentSelector from '../components/FulfillmentSelector'
 import PromoCodeField from '../components/PromoCodeField'
 import OutOfStockBadge, { OutOfStockNotice } from '../components/OutOfStockBadge'
-import { isOutOfStock } from '../components/Products'
 
 const fieldStyle = {
   width: '100%',
@@ -38,11 +37,19 @@ function Field({ label, children }) {
   )
 }
 
+function contentsLabel(contents, multiplier = 1) {
+  return contents.map(c => `${c.quantity * multiplier} × ${c.name}`).join(' + ')
+}
+
 function itemLabel(item) {
   const subtotal = item.price * item.quantity
-  return item.fixedQuantity
+  const label = item.fixedQuantity
     ? `${cartItemName(item)} — ${item.quantity} paquet${item.quantity > 1 ? 's' : ''} de ${item.fixedQuantity} — ${subtotal} MAD`
     : `${cartItemName(item)} — ${item.quantity} x ${item.price} MAD = ${subtotal} MAD`
+  // Pack : on détaille tout ce qu'il faut préparer, quantités déjà
+  // multipliées par le nombre de packs commandés.
+  const contents = cartItemContents(item)
+  return contents.length > 0 ? `${label} — À préparer : ${contentsLabel(contents, item.quantity)}` : label
 }
 
 export default function Checkout() {
@@ -105,6 +112,7 @@ export default function Checkout() {
       // si elle dépendait du panier en direct.
       const confirmedItems = items.map(item => ({
         name: item.name,
+        contents: contentsLabel(cartItemContents(item)),
         quantity: item.quantity,
         fixedQuantity: item.fixedQuantity,
         unitLabel: item.unitLabel,
@@ -221,7 +229,12 @@ export default function Checkout() {
                 <div style={{ fontFamily: 'Outfit, sans-serif', fontWeight: 700, fontSize: '14px', color: '#fff' }}>
                   {cartItemName(item)}
                 </div>
-                {isOutOfStock(item.slug) && <OutOfStockBadge size="sm" style={{ marginTop: '4px', boxShadow: 'none' }} />}
+                {item.isPack && (
+                  <div style={{ fontFamily: 'Rubik, sans-serif', fontSize: '12px', lineHeight: 1.6, color: 'rgba(255,255,255,0.55)', marginTop: '2px' }}>
+                    Contenu du pack : {contentsLabel(cartItemContents(item))}
+                  </div>
+                )}
+                {isCartItemOutOfStock(item) && <OutOfStockBadge size="sm" style={{ marginTop: '4px', boxShadow: 'none' }} />}
                 <div style={{ fontFamily: 'Rubik, sans-serif', fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginTop: '2px' }}>
                   {item.fixedQuantity
                     ? `${item.quantity} paquet${item.quantity > 1 ? 's' : ''} de ${item.fixedQuantity}`

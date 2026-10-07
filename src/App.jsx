@@ -5,6 +5,9 @@ import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import Home from './pages/Home'
 import Shop from './pages/Shop'
+import Boutique from './pages/Boutique'
+import Packs from './pages/Packs'
+import PackDetail from './pages/PackDetail'
 import Terms from './pages/Terms'
 import Privacy from './pages/Privacy'
 import Contact from './pages/Contact'
@@ -29,7 +32,10 @@ function App() {
       <main>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/boutique" element={<Boutique />} />
           <Route path="/shop" element={<Shop />} />
+          <Route path="/packs" element={<Packs />} />
+          <Route path="/packs/:slug" element={<PackDetail />} />
           <Route path="/commander/:slug" element={<Order />} />
           <Route path="/panier" element={<Cart />} />
           <Route path="/finaliser-commande" element={<Checkout />} />
