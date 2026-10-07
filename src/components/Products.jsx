@@ -10,6 +10,7 @@ import OutOfStockBadge from './OutOfStockBadge'
 // désactivé, fiche produit, blocage du panier) s'adapte automatiquement.
 export const OUT_OF_STOCK_SLUGS = [
   'trace-lettres-petit',
+  'trace-lettres-grand',
 ]
 
 const CATALOG = [
