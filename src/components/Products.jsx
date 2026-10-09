@@ -11,6 +11,9 @@ import OutOfStockBadge from './OutOfStockBadge'
 export const OUT_OF_STOCK_SLUGS = [
   'trace-lettres-petit',
   'trace-lettres-grand',
+  'papier-a3',
+  'carton-plume-5mm',
+  'regle-50cm-plastique',
 ]
 
 const CATALOG = [

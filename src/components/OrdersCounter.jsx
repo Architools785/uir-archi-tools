@@ -3,7 +3,7 @@ import { motion, animate, useReducedMotion } from 'framer-motion'
 
 // ─── Compteur de commandes ───
 // Seul chiffre à mettre à jour chaque mois : le nombre de commandes livrées.
-const DELIVERED_ORDERS_THIS_MONTH = 41
+const DELIVERED_ORDERS_THIS_MONTH = 53
 
 const NEON = '#FFF01F'
 const NEON_GLOW = 'rgba(255,240,31,'
