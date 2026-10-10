@@ -8,13 +8,7 @@ import OutOfStockBadge from './OutOfStockBadge'
 // Seul endroit à modifier : ajoute le slug d'un produit ici pour le mettre en
 // rupture, retire-le pour le remettre en stock. Tout le reste (badge, bouton
 // désactivé, fiche produit, blocage du panier) s'adapte automatiquement.
-export const OUT_OF_STOCK_SLUGS = [
-  'trace-lettres-petit',
-  'trace-lettres-grand',
-  'papier-a3',
-  'carton-plume-5mm',
-  'regle-50cm-plastique',
-]
+export const OUT_OF_STOCK_SLUGS = []
 
 const CATALOG = [
   { slug: 'recharge-porte-mine-7mm', name: 'Recharge porte-mine 7mm', price: 10, tag: 'Mine renforcée',       gradient: 'linear-gradient(135deg,#1F2937,#4B5563)', image: '/images/recharge-porte-mine-7mm.png', imageFit: 'cover' },
@@ -38,6 +32,7 @@ const CATALOG = [
   { slug: 'scotch-tesa', name: 'Scotch Tesa', price: 35, tag: 'Fixation propre', gradient: 'linear-gradient(135deg,#B91C1C,#F87171)', image: '/images/Scotch%20Tesa.png', imageFit: 'cover' },
   { slug: 'trace-lettres-grand', name: 'Trace lettres (grand)', price: 15, tag: 'Lettres nettes', gradient: 'linear-gradient(135deg,#4C1D95,#A78BFA)', image: '/images/Trace%20lettres%20%28%20grand%20%29.png', imageFit: 'cover' },
   { slug: 'trace-lettres-petit', name: 'Trace lettres (petit)', price: 10, tag: 'Écriture précise', gradient: 'linear-gradient(135deg,#3730A3,#818CF8)', image: '/images/Trace%20Lettres%20%28%20petit%20%29.png', imageFit: 'cover' },
+  { slug: 'trace-meuble-1-50', name: 'Trace meuble 1:50', price: 159, tag: 'Mobilier à l\'échelle', gradient: 'linear-gradient(135deg,#1E40AF,#60A5FA)', image: '/images/trace-meuble-1-50.png', imageFit: 'cover' },
   { slug: 'carnet-de-calque-a3', name: 'Carnet de Calque A3', price: 100, tag: 'Transparence idéale', gradient: 'linear-gradient(135deg,#134E4A,#14B8A6)', image: '/images/Carnet%20de%20Calque%20A3.png', imageFit: 'cover',
     // Vendu aussi à la feuille : la fiche produit propose "Au détail" / "Le paquet".
     retail: { price: 3.5, unitLabel: 'feuille', minQuantity: 4, maxQuantity: 20 } },
