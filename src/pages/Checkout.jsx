@@ -6,6 +6,7 @@ import FreeShippingProgress from '../components/FreeShippingProgress'
 import FulfillmentSelector from '../components/FulfillmentSelector'
 import PromoCodeField from '../components/PromoCodeField'
 import OutOfStockBadge, { OutOfStockNotice } from '../components/OutOfStockBadge'
+import { loadCustomerProfile, saveCustomerProfile, clearCustomerProfile, profileFirstName } from '../data/customerProfile'
 
 const fieldStyle = {
   width: '100%',
@@ -37,6 +38,45 @@ function Field({ label, children }) {
   )
 }
 
+const textLinkStyle = {
+  background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+  fontFamily: 'Rubik, sans-serif', fontWeight: 500, fontSize: '13px',
+  color: '#FFD600', textDecoration: 'underline', textUnderlineOffset: '3px',
+}
+
+// Infos mémorisées affichées en lecture seule, avec un lien pour les modifier.
+function SavedInfo({ title, lines, actionLabel, onAction }) {
+  return (
+    <div style={{
+      background: 'rgba(255,255,255,0.05)',
+      border: '1px solid rgba(255,255,255,0.14)',
+      borderRadius: 'var(--radius-sm)',
+      padding: '14px 16px',
+      display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'space-between', gap: '10px',
+    }}>
+      <div style={{ minWidth: 0, flex: '1 1 200px' }}>
+        <div style={{
+          fontFamily: 'Outfit, sans-serif', fontWeight: 700, fontSize: '13px',
+          color: 'rgba(255,255,255,0.7)', letterSpacing: '0.3px', marginBottom: '6px',
+        }}>
+          {title}
+        </div>
+        {lines.map((line, idx) => (
+          <div key={idx} style={{
+            fontFamily: 'Rubik, sans-serif', fontSize: '15px', lineHeight: 1.5,
+            color: '#fff', overflowWrap: 'anywhere', whiteSpace: 'pre-line',
+          }}>
+            {line}
+          </div>
+        ))}
+      </div>
+      <button type="button" onClick={onAction} style={textLinkStyle}>
+        {actionLabel}
+      </button>
+    </div>
+  )
+}
+
 function contentsLabel(contents, multiplier = 1) {
   return contents.map(c => `${c.quantity * multiplier} × ${c.name}`).join(' + ')
 }
@@ -61,10 +101,15 @@ export default function Checkout() {
     outOfStockItems, hasOutOfStockItems, removeItem,
   } = useCart()
 
-  const [fullName, setFullName] = useState('')
-  const [phone, setPhone] = useState('')
-  const [city, setCity] = useState('')
-  const [address, setAddress] = useState('')
+  // Profil mémorisé lors d'une commande précédente (null s'il n'y en a pas).
+  const [savedProfile, setSavedProfile] = useState(loadCustomerProfile)
+  const [fullName, setFullName] = useState(savedProfile?.fullName || '')
+  const [phone, setPhone] = useState(savedProfile?.phone || '')
+  const [city, setCity] = useState(savedProfile?.city || '')
+  const [address, setAddress] = useState(savedProfile?.address || '')
+  const [isEditingIdentity, setIsEditingIdentity] = useState(false)
+  const [isEditingAddress, setIsEditingAddress] = useState(false)
+  const [rememberInfo, setRememberInfo] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
   const orderPlacedRef = useRef(false)
@@ -107,6 +152,10 @@ export default function Checkout() {
         throw new Error('Formspree submission failed')
       }
 
+      // Commande bien reçue : on mémorise les infos pour la prochaine fois,
+      // seulement si le client l'a accepté.
+      if (rememberInfo) saveCustomerProfile({ fullName, phone, city, address })
+
       // Sauvegarde une copie complète de la commande avant de toucher au panier,
       // car clearCart() vide `items` et ferait échouer la page de confirmation
       // si elle dépendait du panier en direct.
@@ -142,6 +191,22 @@ export default function Checkout() {
       setIsSubmitting(false)
     }
   }
+
+  const forgetProfile = () => {
+    clearCustomerProfile()
+    setSavedProfile(null)
+    setFullName('')
+    setPhone('')
+    setCity('')
+    setAddress('')
+    setIsEditingIdentity(false)
+    setIsEditingAddress(false)
+  }
+
+  // Avec un profil mémorisé, les infos s'affichent en résumé tant que le
+  // client ne demande pas à les modifier.
+  const showIdentityFields = !savedProfile || isEditingIdentity
+  const showAddressFields = !savedProfile || isEditingAddress
 
   return (
     <section style={{
@@ -339,45 +404,103 @@ export default function Checkout() {
             display: 'flex', flexDirection: 'column', gap: '20px',
           }}
         >
-          <Field label="Nom complet">
-            <input
-              type="text" required name="Nom complet" value={fullName}
-              onChange={e => setFullName(e.target.value)}
-              onFocus={focusField} onBlur={blurField}
-              style={fieldStyle}
-              placeholder="Ton nom et prénom"
-            />
-          </Field>
+          {savedProfile && (
+            <div style={{
+              background: 'rgba(255,214,0,0.1)', border: '1px solid rgba(255,214,0,0.32)',
+              borderRadius: 'var(--radius-sm)', padding: '14px 18px',
+              fontFamily: 'Rubik, sans-serif', fontSize: '14px', lineHeight: 1.6,
+              color: 'rgba(255,255,255,0.85)',
+            }}>
+              <span style={{ fontFamily: 'Outfit, sans-serif', fontWeight: 800, color: '#FFD600' }}>
+                Bon retour {profileFirstName(savedProfile)} 👋
+              </span>{' '}
+              Tes infos sont déjà remplies.
+            </div>
+          )}
 
-          <Field label="Téléphone">
-            <input
-              type="tel" required name="Téléphone" value={phone}
-              onChange={e => setPhone(e.target.value)}
-              onFocus={focusField} onBlur={blurField}
-              style={fieldStyle}
-              placeholder="06 XX XX XX XX"
-            />
-          </Field>
+          {showIdentityFields ? (
+            <>
+              <Field label="Nom complet">
+                <input
+                  type="text" required name="Nom complet" value={fullName}
+                  onChange={e => setFullName(e.target.value)}
+                  onFocus={focusField} onBlur={blurField}
+                  style={fieldStyle}
+                  placeholder="Ton nom et prénom"
+                />
+              </Field>
 
-          <Field label="Cité">
-            <input
-              type="text" required name="Cité" value={city}
-              onChange={e => setCity(e.target.value)}
-              onFocus={focusField} onBlur={blurField}
-              style={fieldStyle}
-              placeholder="Ta cité / résidence"
+              <Field label="Téléphone">
+                <input
+                  type="tel" required name="Téléphone" value={phone}
+                  onChange={e => setPhone(e.target.value)}
+                  onFocus={focusField} onBlur={blurField}
+                  style={fieldStyle}
+                  placeholder="06 XX XX XX XX"
+                />
+              </Field>
+            </>
+          ) : (
+            <SavedInfo
+              title="Tes infos"
+              lines={[fullName, phone]}
+              actionLabel="Modifier mes infos"
+              onAction={() => setIsEditingIdentity(true)}
             />
-          </Field>
+          )}
 
-          <Field label="Adresse complète">
-            <textarea
-              required rows={3} name="Adresse complète" value={address}
-              onChange={e => setAddress(e.target.value)}
-              onFocus={focusField} onBlur={blurField}
-              style={{ ...fieldStyle, resize: 'vertical', fontFamily: 'Rubik, sans-serif' }}
-              placeholder="Bâtiment, chambre, repères..."
+          {showAddressFields ? (
+            <>
+              <Field label="Cité">
+                <input
+                  type="text" required name="Cité" value={city}
+                  onChange={e => setCity(e.target.value)}
+                  onFocus={focusField} onBlur={blurField}
+                  style={fieldStyle}
+                  placeholder="Ta cité / résidence"
+                />
+              </Field>
+
+              <Field label="Adresse complète">
+                <textarea
+                  required rows={3} name="Adresse complète" value={address}
+                  onChange={e => setAddress(e.target.value)}
+                  onFocus={focusField} onBlur={blurField}
+                  style={{ ...fieldStyle, resize: 'vertical', fontFamily: 'Rubik, sans-serif' }}
+                  placeholder="Bâtiment, chambre, repères..."
+                />
+              </Field>
+            </>
+          ) : (
+            <SavedInfo
+              title="Adresse de livraison"
+              lines={[city, address]}
+              actionLabel="Changer d'adresse"
+              onAction={() => setIsEditingAddress(true)}
             />
-          </Field>
+          )}
+
+          <label style={{
+            display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer',
+            fontFamily: 'Rubik, sans-serif', fontSize: '14px', lineHeight: 1.5,
+            color: 'rgba(255,255,255,0.75)',
+          }}>
+            <input
+              type="checkbox" checked={rememberInfo}
+              onChange={e => setRememberInfo(e.target.checked)}
+              style={{ width: '18px', height: '18px', marginTop: '1px', flexShrink: 0, accentColor: '#FFD600', cursor: 'pointer' }}
+            />
+            Mémoriser mes infos pour mes prochaines commandes
+          </label>
+
+          {savedProfile && (
+            <button
+              type="button" onClick={forgetProfile}
+              style={{ ...textLinkStyle, alignSelf: 'flex-start', fontSize: '12px', color: 'rgba(255,255,255,0.45)', marginTop: '-8px' }}
+            >
+              Oublier mes infos
+            </button>
+          )}
 
           {hasOutOfStockItems && <OutOfStockNotice items={outOfStockItems} onRemove={removeItem} />}
 
