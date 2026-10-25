@@ -48,7 +48,7 @@ export default function Order() {
   const { addItem, totalCount } = useCart()
 
   const [mode, setMode] = useState(MODE_PACK)
-  const [quantity, setQuantity] = useState(1)
+  const [quantity, setQuantity] = useState(product?.minQuantity || 1)
   const [showToast, setShowToast] = useState(false)
 
   useEffect(() => {
@@ -77,7 +77,7 @@ export default function Order() {
     : { ...product, cartKey: `${product.slug}--paquet`, name: `${product.name} — paquet`, unitLabel: 'paquet' }
   const quantities = isRetail
     ? Array.from({ length: retail.maxQuantity - retail.minQuantity + 1 }, (_, i) => i + retail.minQuantity)
-    : QUANTITIES
+    : QUANTITIES.filter(q => q >= (product.minQuantity || 1))
 
   const total = cartProduct.price * quantity
   const outOfStock = isOutOfStock(product.slug)
@@ -211,7 +211,7 @@ export default function Order() {
               color: '#06071E', background: '#FFD600',
               padding: '8px 20px', borderRadius: '100px',
             }}>
-              {cartProduct.price} MAD{isRetail ? ` / ${retail.unitLabel}` : ''}
+              {cartProduct.price} MAD{isRetail ? ` / ${retail.unitLabel}` : product.unitLabel ? ` / ${product.unitLabel}` : ''}
             </span>
             {product.originalPrice && (
               <span style={{
@@ -336,6 +336,24 @@ export default function Order() {
                 </select>
                 <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.45)', marginTop: '4px', display: 'block' }}>
                   Vendu uniquement par paquet de {product.fixedQuantity}
+                </span>
+              </>
+            ) : product.minQuantity ? (
+              <>
+                <select
+                  required value={quantity}
+                  onChange={e => setQuantity(Number(e.target.value))}
+                  onFocus={focusField} onBlur={blurField}
+                  style={{ ...fieldStyle, cursor: 'pointer' }}
+                >
+                  {quantities.map(q => (
+                    <option key={q} value={q} style={{ background: '#0B0C35', color: '#fff' }}>
+                      {q} {product.unitLabel}s
+                    </option>
+                  ))}
+                </select>
+                <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.45)', marginTop: '4px', display: 'block' }}>
+                  Minimum {product.minQuantity} {product.unitLabel}s
                 </span>
               </>
             ) : (

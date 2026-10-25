@@ -2,8 +2,11 @@ import { useEffect, useState } from 'react'
 import { motion, animate, useReducedMotion } from 'framer-motion'
 
 // ─── Compteur de commandes ───
-// Seul chiffre à mettre à jour chaque mois : le nombre de commandes livrées.
-const DELIVERED_ORDERS_THIS_MONTH = 53
+// Seul texte à mettre à jour chaque mois : le nombre de commandes livrées.
+// Un nombre suivi d'un suffixe optionnel (ex. '53', '100+').
+const DELIVERED_ORDERS_THIS_MONTH = '100+'
+const TARGET_COUNT = parseInt(DELIVERED_ORDERS_THIS_MONTH, 10) || 0
+const COUNT_SUFFIX = DELIVERED_ORDERS_THIS_MONTH.replace(/^\d+/, '')
 
 const NEON = '#FFF01F'
 const NEON_GLOW = 'rgba(255,240,31,'
@@ -11,12 +14,12 @@ const NEON_GLOW = 'rgba(255,240,31,'
 export default function OrdersCounter({ delay = 0 }) {
   const reduce = useReducedMotion()
   const [animatedCount, setAnimatedCount] = useState(0)
-  const count = reduce ? DELIVERED_ORDERS_THIS_MONTH : animatedCount
+  const count = reduce ? TARGET_COUNT : animatedCount
 
   // Le chiffre défile de 0 à la valeur finale au chargement de la page.
   useEffect(() => {
     if (reduce) return
-    const controls = animate(0, DELIVERED_ORDERS_THIS_MONTH, {
+    const controls = animate(0, TARGET_COUNT, {
       duration: 1.6,
       delay,
       ease: [0.22, 1, 0.36, 1],
@@ -60,7 +63,7 @@ export default function OrdersCounter({ delay = 0 }) {
           minWidth: `${String(DELIVERED_ORDERS_THIS_MONTH).length}ch`,
           textAlign: 'right',
         }}>
-          {count}
+          {count}{COUNT_SUFFIX}
         </span>
         <span aria-hidden="true" style={{
           fontFamily: 'Outfit, sans-serif', fontWeight: 700,
