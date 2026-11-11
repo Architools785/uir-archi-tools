@@ -1,11 +1,15 @@
 import { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react'
 import { PRODUCTS, isOutOfStock } from '../components/Products'
 import { getPack, packContents, isPackSelectionOutOfStock } from '../data/packs'
+import {
+  STICKER_DISCOUNT_RATE, hashStickerCode, isKnownStickerHash, isStickerHashUsed, markStickerHashUsed,
+} from '../data/stickerCodes'
 
 const CartContext = createContext(null)
 const STORAGE_KEY = 'uir-archi-tools-cart'
 const FULFILLMENT_STORAGE_KEY = 'uir-archi-tools-fulfillment'
 const PROMO_STORAGE_KEY = 'uir-archi-tools-promo'
+const STICKER_PROMO_STORAGE_KEY = 'uir-archi-tools-sticker-promo'
 
 export const FREE_SHIPPING_THRESHOLD = 35
 export const SHIPPING_FEE = 5
@@ -89,10 +93,34 @@ function loadPromoCode() {
   }
 }
 
+// Code "chasse aux stickers" appliqué : { code, hash }. Seule l'empreinte
+// est vérifiée (liste dans src/data/stickerCodes.js) ; un code déjà utilisé
+// sur cet appareil est retiré silencieusement au chargement.
+function loadStickerPromo() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(STICKER_PROMO_STORAGE_KEY) || 'null')
+    if (!parsed || typeof parsed.code !== 'string' || !isKnownStickerHash(parsed.hash)) return null
+    if (isStickerHashUsed(parsed.hash)) return null
+    return { code: parsed.code, hash: parsed.hash }
+  } catch {
+    return null
+  }
+}
+
+// Réduction sticker : -15 % sur 1 exemplaire du produit à l'unité le plus
+// cher du panier (jamais sur un pack). 0 s'il n'y a aucun produit à l'unité.
+function computeStickerDiscount(items) {
+  const eligible = items.filter(i => !i.isPack)
+  if (eligible.length === 0) return { discount: 0, item: null }
+  const item = eligible.reduce((best, i) => (i.price > best.price ? i : best))
+  return { discount: Math.round(item.price * STICKER_DISCOUNT_RATE), item }
+}
+
 export function CartProvider({ children }) {
   const [items, setItems] = useState(loadCart)
   const [fulfillmentMethod, setFulfillmentMethod] = useState(loadFulfillmentMethod)
-  const [appliedPromoCode, setAppliedPromoCode] = useState(loadPromoCode)
+  const [amineCode, setAppliedPromoCode] = useState(loadPromoCode)
+  const [stickerPromo, setStickerPromo] = useState(loadStickerPromo)
 
   useEffect(() => {
     try {
@@ -112,15 +140,27 @@ export function CartProvider({ children }) {
 
   useEffect(() => {
     try {
-      if (appliedPromoCode) {
-        localStorage.setItem(PROMO_STORAGE_KEY, appliedPromoCode)
+      if (amineCode) {
+        localStorage.setItem(PROMO_STORAGE_KEY, amineCode)
       } else {
         localStorage.removeItem(PROMO_STORAGE_KEY)
       }
     } catch {
       // localStorage indisponible (navigation privée, quota, etc.) — on continue sans persister
     }
-  }, [appliedPromoCode])
+  }, [amineCode])
+
+  useEffect(() => {
+    try {
+      if (stickerPromo) {
+        localStorage.setItem(STICKER_PROMO_STORAGE_KEY, JSON.stringify(stickerPromo))
+      } else {
+        localStorage.removeItem(STICKER_PROMO_STORAGE_KEY)
+      }
+    } catch {
+      // localStorage indisponible (navigation privée, quota, etc.) — on continue sans persister
+    }
+  }, [stickerPromo])
 
   const addItem = useCallback((product, quantity) => {
     if (isCartItemOutOfStock(product)) return
@@ -165,6 +205,7 @@ export function CartProvider({ children }) {
   const clearCart = useCallback(() => {
     setItems([])
     setAppliedPromoCode(null)
+    setStickerPromo(null)
   }, [])
 
   // Statut lu en direct depuis le catalogue (pas depuis le panier sauvegardé) :
@@ -187,21 +228,58 @@ export function CartProvider({ children }) {
   )
 
   const promoMeetsMinimum = totalPrice >= PROMO_MIN_SUBTOTAL
-  const isPromoActive = appliedPromoCode === PROMO_CODE && promoMeetsMinimum
+  const isAminePromoActive = amineCode === PROMO_CODE && promoMeetsMinimum
   // Le code reste "en attente" (pas retiré) si le panier repasse sous le
   // minimum après coup (ex. suppression d'un article) — il se réactive
   // automatiquement dès que le sous-total remonte à 50 DH.
-  const promoBelowMinimum = appliedPromoCode === PROMO_CODE && !promoMeetsMinimum
-  const promoDiscount = isPromoActive ? Math.round(promoEligibleSubtotal * PROMO_DISCOUNT_RATE) : 0
+  const promoBelowMinimum = amineCode === PROMO_CODE && !promoMeetsMinimum
+  const amineDiscount = isAminePromoActive ? Math.round(promoEligibleSubtotal * PROMO_DISCOUNT_RATE) : 0
+
+  // Un seul code par commande : AMINE15 ou un code sticker, jamais les deux.
+  const isStickerPromo = Boolean(stickerPromo)
+  const sticker = useMemo(() => computeStickerDiscount(items), [items])
+  const stickerDiscount = isStickerPromo ? sticker.discount : 0
+  // Code sticker gardé mais sans effet tant qu'aucun produit à l'unité n'est au panier.
+  const stickerPending = isStickerPromo && stickerDiscount === 0
+  const stickerDiscountedItemName = stickerDiscount > 0 ? cartItemName(sticker.item) : null
+
+  const appliedPromoCode = stickerPromo ? stickerPromo.code : amineCode
+  const isPromoActive = isAminePromoActive || stickerDiscount > 0
+  const promoDiscount = stickerPromo ? stickerDiscount : amineDiscount
   const promoMissingAmount = Math.max(0, PROMO_MIN_SUBTOTAL - totalPrice)
 
-  const applyPromoCode = useCallback((rawCode) => {
+  // Asynchrone : la vérification d'un code sticker passe par crypto.subtle.
+  const applyPromoCode = useCallback(async (rawCode) => {
     const code = (rawCode || '').trim().toUpperCase()
     if (!code) {
       return { success: false, message: 'Merci de saisir un code promo.' }
     }
+    if (appliedPromoCode) {
+      return {
+        success: false,
+        message: `Un seul code promo par commande : retire le code ${appliedPromoCode} pour en utiliser un autre.`,
+      }
+    }
     if (code !== PROMO_CODE) {
-      return { success: false, message: 'Ce code promo est invalide.' }
+      const hash = await hashStickerCode(code)
+      if (!hash) {
+        return { success: false, message: 'Impossible de vérifier ce code sur ce navigateur. Réessaie depuis un autre navigateur.' }
+      }
+      if (!isKnownStickerHash(hash)) {
+        return { success: false, message: 'Code invalide' }
+      }
+      if (isStickerHashUsed(hash)) {
+        return { success: false, message: 'Ce code a déjà été utilisé' }
+      }
+      const { discount } = computeStickerDiscount(items)
+      if (discount === 0) {
+        return {
+          success: false,
+          message: "Ce code s'applique à un produit à l'unité (hors packs) : ajoutes-en un au panier pour l'utiliser.",
+        }
+      }
+      setStickerPromo({ code: code.replace(/\s+/g, ''), hash })
+      return { success: true, message: `Code appliqué : -${discount} DH` }
     }
     if (totalPrice < PROMO_MIN_SUBTOTAL) {
       const missing = PROMO_MIN_SUBTOTAL - totalPrice
@@ -212,9 +290,18 @@ export function CartProvider({ children }) {
     }
     setAppliedPromoCode(code)
     return { success: true, message: `Code ${code} appliqué : -${Math.round(PROMO_DISCOUNT_RATE * 100)}%` }
-  }, [totalPrice])
+  }, [totalPrice, items, appliedPromoCode])
 
-  const removePromoCode = useCallback(() => setAppliedPromoCode(null), [])
+  const removePromoCode = useCallback(() => {
+    setAppliedPromoCode(null)
+    setStickerPromo(null)
+  }, [])
+
+  // Appelé après l'envoi réussi d'une commande : le code sticker ne pourra
+  // plus être utilisé sur cet appareil.
+  const markStickerCodeUsed = useCallback(() => {
+    if (stickerPromo) markStickerHashUsed(stickerPromo.hash)
+  }, [stickerPromo])
 
   const subtotalAfterDiscount = totalPrice - promoDiscount
   const hasAlwaysFreeShippingItem = items.some(i => i.alwaysFreeShipping)
@@ -232,6 +319,7 @@ export function CartProvider({ children }) {
       fulfillmentMethod, setFulfillmentMethod, isPickup,
       appliedPromoCode, applyPromoCode, removePromoCode, isPromoActive, promoBelowMinimum,
       promoDiscount, promoMissingAmount, subtotalAfterDiscount,
+      isStickerPromo, stickerPending, stickerDiscountedItemName, markStickerCodeUsed,
       outOfStockItems, hasOutOfStockItems,
     }),
     [items, addItem, removeItem, updateQuantity, clearCart, totalCount, totalPrice,
@@ -239,6 +327,7 @@ export function CartProvider({ children }) {
       fulfillmentMethod, isPickup,
       appliedPromoCode, applyPromoCode, removePromoCode, isPromoActive, promoBelowMinimum,
       promoDiscount, promoMissingAmount, subtotalAfterDiscount,
+      isStickerPromo, stickerPending, stickerDiscountedItemName, markStickerCodeUsed,
       outOfStockItems, hasOutOfStockItems]
   )
 

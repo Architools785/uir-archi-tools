@@ -98,6 +98,7 @@ export default function Checkout() {
   const {
     items, totalPrice, totalCount, shippingFee, orderTotal, clearCart, isPickup,
     appliedPromoCode, isPromoActive, promoDiscount,
+    isStickerPromo, stickerDiscountedItemName, markStickerCodeUsed,
     outOfStockItems, hasOutOfStockItems, removeItem,
   } = useCart()
 
@@ -137,6 +138,10 @@ export default function Checkout() {
       formData.append('Sous-total produits', `${totalPrice} MAD`)
       formData.append('Code promo utilisé', isPromoActive ? appliedPromoCode : 'Aucun')
       formData.append('Réduction code promo', `${promoDiscount} MAD`)
+      if (isStickerPromo && isPromoActive) {
+        formData.append('Code sticker (à retirer de la liste)', appliedPromoCode)
+        formData.append('Produit réduit (code sticker)', `1 × ${stickerDiscountedItemName} (-15 %)`)
+      }
       formData.append('Mode de récupération', isPickup ? 'Retrait sur place' : 'Livraison sur le campus')
       formData.append('Frais de livraison', `${shippingFee} MAD`)
       formData.append('Total à payer', `${orderTotal} MAD`)
@@ -155,6 +160,9 @@ export default function Checkout() {
       // Commande bien reçue : on mémorise les infos pour la prochaine fois,
       // seulement si le client l'a accepté.
       if (rememberInfo) saveCustomerProfile({ fullName, phone, city, address })
+
+      // Code sticker à usage unique : refusé sur cet appareil après la commande.
+      if (isStickerPromo && isPromoActive) markStickerCodeUsed()
 
       // Sauvegarde une copie complète de la commande avant de toucher au panier,
       // car clearCart() vide `items` et ferait échouer la page de confirmation
@@ -321,9 +329,9 @@ export default function Checkout() {
               </span>
             </div>
             {promoDiscount > 0 && (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontFamily: 'Outfit, sans-serif', fontWeight: 600, fontSize: '13px', color: 'rgba(255,255,255,0.6)' }}>
-                  Réduction code promo
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                <span style={{ fontFamily: 'Outfit, sans-serif', fontWeight: 600, fontSize: '13px', color: 'rgba(255,255,255,0.6)', overflowWrap: 'anywhere' }}>
+                  Réduction code promo ({appliedPromoCode})
                 </span>
                 <span style={{ fontFamily: 'Outfit, sans-serif', fontWeight: 700, fontSize: '14px', color: '#34D399' }}>
                   -{promoDiscount} MAD

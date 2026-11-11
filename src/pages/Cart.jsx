@@ -107,7 +107,7 @@ export default function Cart() {
   const reduce = useReducedMotion()
   const navigate = useNavigate()
   const {
-    items, totalPrice, totalCount, shippingFee, orderTotal, isPickup, promoDiscount,
+    items, totalPrice, totalCount, shippingFee, orderTotal, isPickup, promoDiscount, appliedPromoCode,
     outOfStockItems, hasOutOfStockItems, removeItem,
   } = useCart()
 
@@ -286,12 +286,12 @@ export default function Cart() {
                 </span>
               </div>
               {promoDiscount > 0 && (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
                   <span style={{
                     fontFamily: 'Outfit, sans-serif', fontWeight: 600, fontSize: '14px',
-                    color: 'rgba(255,255,255,0.6)',
+                    color: 'rgba(255,255,255,0.6)', overflowWrap: 'anywhere',
                   }}>
-                    Réduction code promo
+                    Réduction code promo ({appliedPromoCode})
                   </span>
                   <span style={{
                     fontFamily: 'Outfit, sans-serif', fontWeight: 700, fontSize: '15px',
