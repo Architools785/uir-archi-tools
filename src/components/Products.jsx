@@ -8,7 +8,14 @@ import OutOfStockBadge from './OutOfStockBadge'
 // Seul endroit à modifier : ajoute le slug d'un produit ici pour le mettre en
 // rupture, retire-le pour le remettre en stock. Tout le reste (badge, bouton
 // désactivé, fiche produit, blocage du panier) s'adapte automatiquement.
-export const OUT_OF_STOCK_SLUGS = ['trace-meuble-1-50']
+export const OUT_OF_STOCK_SLUGS = [
+  'trace-meuble-1-50',
+  'papier-a1',
+  'carton-plume-5mm',
+  'raisin',
+  'crayon-brosse',
+  'papier-transparent-a3',
+]
 
 const CATALOG = [
   { slug: 'recharge-porte-mine-7mm', name: 'Recharge porte-mine 7mm', price: 10, tag: 'Mine renforcée',       gradient: 'linear-gradient(135deg,#1F2937,#4B5563)', image: '/images/recharge-porte-mine-7mm.png', imageFit: 'cover' },
